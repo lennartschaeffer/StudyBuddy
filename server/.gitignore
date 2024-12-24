@@ -1,0 +1,14 @@
+# Backend .gitignore
+
+# Node modules
+node_modules/
+
+# Environment variables
+.env
+
+# IDE files
+.vscode/
+
+
+# Miscellaneous
+.DS_Store
