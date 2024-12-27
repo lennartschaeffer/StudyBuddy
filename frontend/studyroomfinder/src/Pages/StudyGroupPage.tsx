@@ -1,37 +1,26 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import NavBar from "../Components/NavBar";
 import "./HomePage.css";
-import axios from "axios";
-import { API_URL } from "../apiRoute";
 import { useAuth } from "../Context/useAuth";
-import { toast } from "react-toastify";
 import { StudyGroup } from "../Models/StudyGroup";
 import CreateStudyGroupModal from "../Components/CreateStudyGroupModal";
 import StudyGroupInviteModal from "../Components/StudyGroupInviteModal";
+import { useQuery } from "react-query";
+import { getStudyGroups } from "../endpoints/StudyGroups";
 
 const StudyGroupPage = () => {
   const { user } = useAuth();
-  const [studyGroups, setStudyGroups] = useState<StudyGroup[]>([]);
   const [showCreateGroupModal, setShowCreateGroupModal] =
     useState<boolean>(false);
   const [showInviteModal, setShowInviteModal] = useState<boolean>(false);
   const [groupName, setGroupName] = useState<string>("");
   const [groupId, setGroupId] = useState<number>();
 
-  useEffect(() => {
-    axios
-      .get(`${API_URL}/studygroups/${user?.user_id}`)
-      .then((res) => {
-        console.log(res.data);
-        if (res.data.length > 0) {
-          setStudyGroups(res.data);
-        }
-      })
-      .catch((err) => {
-        console.log(err);
-        toast.error("Error fetching study groups.");
-      });
-  }, []);
+  const {
+    data: studyGroups,
+  } = useQuery("studyGroups", () => getStudyGroups(user?.user_id!), {
+    enabled: !!user?.user_id,
+  });
 
   const handleShowInviteModal = (groupId: number, groupName: string) => {
     setGroupId(groupId);
@@ -53,10 +42,10 @@ const StudyGroupPage = () => {
             <b>Create a Group</b>
           </button>
         </div>
-        {studyGroups.length > 0 ? (
+        {typeof studyGroups !== "string" ? (
           <div className="row d-flex justify-content-center">
-            {studyGroups.map((group, id) => (
-              <div className="col-4" key={id}>
+            {studyGroups?.map((group: StudyGroup, id: number) => (
+              <div className="col-4 mb-4" key={id}>
                 <div className="card">
                   <div className="card-header">
                     <h3 className="card-title">{group.name}</h3>

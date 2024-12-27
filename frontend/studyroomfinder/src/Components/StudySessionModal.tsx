@@ -19,56 +19,68 @@ const StudySessionModal: React.FC<StudySessionModalProps> = ({
   onStartSession,
 }) => {
   const [time, setTime] = useState<string>("");
-  const [sessionName, setSessionName] = useState<string>("")
+  const [sessionName, setSessionName] = useState<string>("");
   const [showChecklistInput, setShowChecklistInput] = useState<boolean>(false);
   const [task, setTask] = useState<string>("");
   const [checklist, setChecklist] = useState<string[]>([]);
   const [location, setLocation] = useState<Location>();
-  const { user } = useAuth()
+  const { user } = useAuth();
 
-  const handleStartSession = async() => {
+  const handleStartSession = async () => {
     if (!time) {
       alert("Please fill out all fields.");
       return;
     }
-    await axios.post(`${API_URL}/studysessions`,{
-      session_name: sessionName,
-      endTime: time,
-      user_id: user?.user_id,
-      checklist: checklist,
-      lat: location?.lat,
-      lon: location?.lon
-    }).then((res) => {
-      setTime("")
-      setChecklist([])
-      setTask("")
-      onStartSession(true)
-      onClose();
-    }).catch((err) => {
-      console.log(err)
-      toast.error("Error creating session." + err)
-    })
+    //get current date
+    const currentDate = new Date();
+    const [hours, minutes] = time.split(":").map(Number);
+
+    //set hours and minutes
+    currentDate.setHours(hours, minutes, 0, 0);
+
+    //convcert to ISO string
+    const endTimeISO = currentDate.toISOString();
+
+    await axios
+      .post(`${API_URL}/studysessions`, {
+        session_name: sessionName,
+        end_time: endTimeISO,
+        user_id: user?.user_id,
+        checklist: checklist,
+        lat: location?.lat,
+        lon: location?.lon,
+      })
+      .then((res) => {
+        setTime("");
+        setChecklist([]);
+        setTask("");
+        onStartSession(true);
+        onClose();
+      })
+      .catch((err) => {
+        console.log(err);
+        toast.error("Error creating session." + err);
+      });
   };
 
   //get user geolocation
-    useEffect(() => {
-      navigator.geolocation.getCurrentPosition((position) => {
-        console.log(position.coords.latitude, position.coords.longitude);
-        setLocation({
-          lat: position.coords.latitude,
-          lon: position.coords.longitude,
-        });
+  useEffect(() => {
+    navigator.geolocation.getCurrentPosition((position) => {
+      console.log(position.coords.latitude, position.coords.longitude);
+      setLocation({
+        lat: position.coords.latitude,
+        lon: position.coords.longitude,
       });
-    }, []);
+    });
+  }, []);
 
   const addCheckListItem = () => {
     // add checklist item to state
-    if(task) {
+    if (task) {
       setChecklist([...checklist, task]);
       setTask("");
     }
-  }
-
+  };
 
   return (
     <Modal show={show} aria-labelledby="contained-modal-title-vcenter" centered>
@@ -79,7 +91,7 @@ const StudySessionModal: React.FC<StudySessionModalProps> = ({
       </Modal.Header>
       <Modal.Body>
         <Form>
-        <Form.Group className="mb-3" controlId="formBasicEmail">
+          <Form.Group className="mb-3" controlId="formBasicEmail">
             <Form.Label>What are you studying today?</Form.Label>
             <Form.Control
               type="text"
@@ -104,7 +116,11 @@ const StudySessionModal: React.FC<StudySessionModalProps> = ({
               aria-describedby="basic-addon2"
               onChange={(e) => setTask(e.target.value)}
             />
-            <Button variant="outline-success" id="button-addon2" onClick={addCheckListItem}>
+            <Button
+              variant="outline-success"
+              id="button-addon2"
+              onClick={addCheckListItem}
+            >
               +
             </Button>
           </InputGroup>

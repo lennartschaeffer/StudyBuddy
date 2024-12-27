@@ -2,7 +2,7 @@ const pool = require("../db.js");
 
 const createStudySession = async (req, res, io) => {
   try {
-    const { session_name, endTime, user_id, checklist, lat, lon } = req.body;
+    const { session_name, end_time, user_id, checklist, lat, lon } = req.body;
 
     //start transaction
     await pool.query("BEGIN");
@@ -23,9 +23,9 @@ const createStudySession = async (req, res, io) => {
 
     //add the session to the study session table
     const newStudySession = await pool.query(
-      `INSERT INTO studysessions (endtime, user_id, session_completed, checklist_id, session_date, session_name, lat, lon) 
+      `INSERT INTO studysessions (end_time, user_id, session_completed, checklist_id, start_time, session_name, lat, lon) 
       VALUES($1, $2, $3, $4, NOW(), $5, $6, $7) RETURNING *;`,
-      [endTime, user_id, false, newChecklist.rows[0].checklist_id, session_name, lat, lon]
+      [end_time, user_id, false, newChecklist.rows[0].checklist_id, session_name, lat, lon]
     );
 
     //update checklist with the session id
@@ -50,7 +50,7 @@ const createStudySession = async (req, res, io) => {
       io.to(friend.friend_id.toString()).emit("studySessionStarted", {
         user_id,
         session_name,
-        endTime,
+        end_time,
         session_id: newStudySession.rows[0].session_id,
       });
     });
@@ -89,7 +89,7 @@ const getActiveStudySession = async (req, res) => {
       ` SELECT * FROM studysessions
         JOIN studysession_checklists USING (checklist_id)
         JOIN studysession_tasks USING (checklist_id)
-        WHERE session_completed = false
+        WHERE NOW() < end_time
         AND user_id = $1;
      `,
       [user_id]
@@ -107,7 +107,8 @@ const getActiveStudySession = async (req, res) => {
       res.json({
         session_id: session.rows[0].session_id,
         session_name: session.rows[0].session_name,
-        endtime: session.rows[0].endtime,
+        start_time: session.rows[0].start_time,
+        end_time: session.rows[0].end_time,
         user_id: session.rows[0].user_id,
         session_completed: session.rows[0].session_completed,
         checklist_id: session.rows[0].checklist_id,
@@ -203,8 +204,7 @@ const getRecentStudySessions = async (req, res) => {
     const recentSessions = await pool.query(
       `SELECT * FROM studysessions 
             WHERE user_id = $1
-            AND session_completed = true
-            ORDER BY session_date DESC
+            ORDER BY start_time DESC
             LIMIT 3;`,
       [user_id]
     );

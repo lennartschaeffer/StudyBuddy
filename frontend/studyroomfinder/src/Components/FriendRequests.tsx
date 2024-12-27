@@ -1,173 +1,80 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Button, ListGroupItem, Modal, Tab, Tabs } from "react-bootstrap";
-import { API_URL } from "../apiRoute";
 import { useAuth } from "../Context/useAuth";
 import { IoPersonCircleSharp } from "react-icons/io5";
 import { toast } from "react-toastify";
-import { Buddy } from "../Models/StudyBuddy";
-import { set } from "date-fns";
+import { useMutation, useQuery, useQueryClient } from "react-query";
+import { Friend } from "../Models/RequestsAndInvites";
+import { useGetFriendsAndInvites } from "../Context/useGetFriendsAndInvites";
+
+import {
+  getFriendRequestsAndGroupInvites,
+  removeFriend,
+  respondToFriendRequest,
+  respondToGroupInvite,
+} from "../endpoints/FriendRequests";
 
 interface FriendRequestProps {
   show: boolean;
   handleClose: () => void;
 }
 
-type FriendRequest = {
-  friendrequest_id: number;
-  username: string;
-  first_name: string;
-  last_name: string;
-};
-
-type GroupInvite = {
-  name: string;
-  studygroup_id: number;
-  studygroup_invite_id: number;
-  username: string;
-  first_name: string;
-  last_name: string;
-};
-
 const FriendRequests: React.FC<FriendRequestProps> = ({
   show,
   handleClose,
 }) => {
   const { user } = useAuth();
-  const [pendingRequests, setPendingRequests] = useState<
-    FriendRequest[] | undefined
-  >();
-  const [groupInvites, setGroupInvites] = useState<GroupInvite[] | undefined>();
-  const [friends, setFriends] = useState<Buddy[] | undefined>();
-  const [requestsLoaded, setRequestsLoaded] = useState<boolean>(false);
-  const [friendsLoaded, setFriendsLoaded] = useState<boolean>(false);
+  const { friendsAndInvites } = useGetFriendsAndInvites();
+  const queryClient = useQueryClient();
 
-  const getPendingRequests = async () => {
-    await axios
-      .get(`${API_URL}/friendrequests/pending/${user?.user_id}`)
-      .then((res) => {
-        console.log(res.data);
-        if (res.data.friendRequests.length > 0) {
-          const requests = res.data.map((request: FriendRequest) => {
-            return {
-              first_name: request.first_name,
-              last_name: request.last_name,
-              username: request.username,
-              friendrequest_id: request.friendrequest_id,
-            };
-          });
-          setPendingRequests(requests);
-        }
-        if (res.data.groupInvites.length > 0) {
-          const invites = res.data.groupInvites.map((invite: GroupInvite) => {
-            return {
-              name: invite.name,
-              studygroup_id: invite.studygroup_id,
-              first_name: invite.first_name,
-              last_name: invite.last_name,
-              username: invite.username,
-            };
-          });
-          setGroupInvites(invites);
-        }
-        setRequestsLoaded(true);
-      })
-      .catch((err) => {
-        console.log(err);
-        toast.error("Error fetching friend requests " + err);
-      });
-  };
-
-  const getFriends = async () => {
-    await axios
-      .get(`${API_URL}/friends/${user?.user_id}`)
-      .then((res) => {
-        if (res.data.length > 0) {
-          const studyBuddies = res.data.map((buddy: Buddy) => {
-            return {
-              username: buddy.username,
-              first_name: buddy.first_name,
-              last_name: buddy.last_name,
-              user_id: buddy.user_id,
-            };
-          });
-          setFriends(studyBuddies);
-        }
-        setFriendsLoaded(true);
-      })
-      .catch((err) => {
-        console.log(err);
-        toast.error("Error fetching friends " + err);
-      });
-  };
-
-  const respondToFriendRequest = async (
-    request_id: number,
-    response: string
-  ) => {
-    axios
-      .post(`${API_URL}/friendrequests/respond`, {
-        request_id: request_id,
-        response: response,
-      })
-      .then((res) => {
-        console.log(res.data);
-        getPendingRequests();
-      })
-      .catch((err) => {
-        console.log(err);
-        toast.error("Error responding to request " + err);
-      });
-  };
-
-  const respondToGroupInvite = async (
-    studygroup_id: number,
-    invite_id: number,
-    response: string
-  ) => {
-    axios
-      .post(`${API_URL}/studygroups/respond`, {
-        studygroup_id: studygroup_id,
-        studygroup_invite_id: invite_id,
-        response: response,
-        user_id: user?.user_id,
-      })
-      .then((res) => {
-        console.log(res.data);
-        getPendingRequests();
-        toast.success("Invite responded!");
-      })
-      .catch((err) => {
-        console.log(err);
-        toast.error("Error responding to invite " + err);
-      });
-  };
-
-  const removeFriend = async (friend_id: number) => {
-    console.log(user?.user_id, friend_id);
-    if (user?.user_id && friend_id) {
-      await axios
-        .delete(`${API_URL}/friends/removeFriend/${user?.user_id}/${friend_id}`)
-        .then((res) => {
-          console.log(res.data);
-          toast.success("Friend removed!");
-          getFriends();
-        })
-        .catch((err) => {
-          console.log(err);
-          toast.error("Error removing friend " + err);
-        });
+  const respondToFriendRequestMutation = useMutation(
+    ({ request_id, response }: { request_id: number; response: string }) =>
+      respondToFriendRequest(request_id, response),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(["requestsAndInvites", user?.user_id]);
+      },
+      onError: (error) => {
+        toast.error("Error responding to friend request " + error);
+      },
     }
-  };
+  );
 
-  useEffect(() => {
-    if (show && !requestsLoaded) {
-      getPendingRequests();
+  const respondToGroupInviteMutation = useMutation(
+    ({
+      studygroup_id,
+      invite_id,
+      response,
+      userId,
+    }: {
+      studygroup_id: number;
+      invite_id: number;
+      response: string;
+      userId: number;
+    }) => respondToGroupInvite(studygroup_id, invite_id, response, userId),
+    {
+      onSuccess: () => {
+        toast.success("Responded to group invite.");
+        queryClient.invalidateQueries(["requestsAndInvites", user?.user_id]);
+      },
+      onError: (error) => {
+        toast.error("Error responding to group invite " + error);
+      },
     }
-    if (show && !friendsLoaded) {
-      getFriends();
+  );
+
+  const removeFriendMutation = useMutation(
+    ({ friend_id, userId }: { friend_id: number; userId: number }) =>
+      removeFriend(friend_id, userId),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(["requestsAndInvites", user?.user_id]);
+      },
+      onError: (error) => {
+        toast.error("Error removing friend " + error);
+      },
     }
-  }, [show, requestsLoaded, friendsLoaded]);
+  );
 
   return (
     <Modal show={show} aria-labelledby="contained-modal-title-vcenter" centered>
@@ -178,8 +85,8 @@ const FriendRequests: React.FC<FriendRequestProps> = ({
           className="mb-3"
         >
           <Tab eventKey="friends" title="Friends">
-            {friends ? (
-              friends.map((friend, id) => (
+            {friendsAndInvites?.friends.length ?? 0 > 0 ? (
+              friendsAndInvites?.friends?.map((friend: Friend, id: number) => (
                 <ListGroupItem key={id}>
                   <div className="row">
                     <div className="col-2 d-flex align-items-center">
@@ -196,7 +103,12 @@ const FriendRequests: React.FC<FriendRequestProps> = ({
                     <div className="col-6 d-flex align-items-center justify-content-center">
                       <button
                         className="btn btn-outline-danger"
-                        onClick={() => removeFriend(friend.user_id)}
+                        onClick={() =>
+                          removeFriendMutation.mutate({
+                            friend_id: friend.user_id,
+                            userId: user?.user_id!,
+                          })
+                        }
                       >
                         Remove Friend
                       </button>
@@ -209,8 +121,8 @@ const FriendRequests: React.FC<FriendRequestProps> = ({
             )}
           </Tab>
           <Tab eventKey="friendrequests" title="Friend Requests">
-            {pendingRequests ? (
-              pendingRequests.map((request, id) => (
+            {friendsAndInvites?.friendRequests?.length ?? 0 > 0 ? (
+              friendsAndInvites?.friendRequests.map((request, id) => (
                 <ListGroupItem key={id}>
                   <div className="row">
                     <div className="col-2 d-flex align-items-center">
@@ -228,10 +140,10 @@ const FriendRequests: React.FC<FriendRequestProps> = ({
                       <button
                         className="btn btn-sm btn-outline-success btn-block"
                         onClick={() =>
-                          respondToFriendRequest(
-                            request.friendrequest_id,
-                            "accepted"
-                          )
+                          respondToFriendRequestMutation.mutate({
+                            request_id: request.friendrequest_id,
+                            response: "accepted",
+                          })
                         }
                       >
                         Accept
@@ -239,10 +151,10 @@ const FriendRequests: React.FC<FriendRequestProps> = ({
                       <button
                         className="btn btn-sm btn-outline-danger btn-block m-0"
                         onClick={() =>
-                          respondToFriendRequest(
-                            request.friendrequest_id,
-                            "rejected"
-                          )
+                          respondToFriendRequestMutation.mutate({
+                            request_id: request.friendrequest_id,
+                            response: "rejected",
+                          })
                         }
                       >
                         Reject
@@ -256,8 +168,8 @@ const FriendRequests: React.FC<FriendRequestProps> = ({
             )}
           </Tab>
           <Tab eventKey="studygroupinvites" title="Study Group Invites">
-            {groupInvites ? (
-              groupInvites.map((invite, id) => (
+            {friendsAndInvites?.groupInvites.length ??  0 > 0 ? (
+              friendsAndInvites?.groupInvites.map((invite, id) => (
                 <ListGroupItem key={id}>
                   <div className="row">
                     <div className="col-2 d-flex align-items-center">
@@ -275,7 +187,12 @@ const FriendRequests: React.FC<FriendRequestProps> = ({
                       <button
                         className="btn btn-sm btn-outline-success btn-block"
                         onClick={() =>
-                          respondToGroupInvite(invite.studygroup_id, invite.studygroup_invite_id, "accepted", )
+                          respondToGroupInviteMutation.mutate({
+                            studygroup_id: invite.studygroup_id,
+                            invite_id: invite.studygroup_invite_id,
+                            response: "accepted",
+                            userId: user?.user_id!,
+                          })
                         }
                       >
                         Accept
@@ -283,7 +200,12 @@ const FriendRequests: React.FC<FriendRequestProps> = ({
                       <button
                         className="btn btn-sm btn-outline-danger btn-block m-0"
                         onClick={() =>
-                          respondToGroupInvite(invite.studygroup_id, invite.studygroup_invite_id, "rejected", )
+                          respondToGroupInviteMutation.mutate({
+                            studygroup_id: invite.studygroup_id,
+                            invite_id: invite.studygroup_invite_id,
+                            response: "rejected",
+                            userId: user?.user_id!,
+                          })
                         }
                       >
                         Reject

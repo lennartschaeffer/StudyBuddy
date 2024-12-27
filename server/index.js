@@ -39,8 +39,7 @@ app.use(bodyParser.urlencoded({ extended: true }));
 const locationRoutes = require("./routes/LocationRoutes.js");
 const studySessionRoutes = require("./routes/StudySessionRoutes.js")(io);
 const userRoutes = require("./routes/UserRoutes.js")
-const friendRequestRoutes = require("./routes/FriendRequestRoutes.js")(io)
-const friendRoutes = require("./routes/FriendRoutes.js")
+const friendsAndInvitesRoutes = require("./routes/FriendsAndInvitesRoutes.js")(io)
 const studyGroupRoutes = require("./routes/StudyGroupRoutes.js")(io)
 
 
@@ -79,9 +78,7 @@ app.use("/studysessions", studySessionRoutes);
 
 app.use("/users", userRoutes)
 
-app.use("/friendrequests", friendRequestRoutes)
-
-app.use("/friends", friendRoutes)
+app.use("/friends", friendsAndInvitesRoutes)
 
 app.use("/studygroups", studyGroupRoutes)
 

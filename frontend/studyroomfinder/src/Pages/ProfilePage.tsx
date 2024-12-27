@@ -57,8 +57,8 @@ const ProfilePage = () => {
                         <h4>{session?.session_name}</h4>
                       </div>
                       <div className="card-body">
-                        <div className="card-text">Start Time: {format(parseISO(session?.session_date), "HH:mm")}</div>
-                        <div className="card-text">End Time: {session?.endtime}</div>
+                        <div className="card-text">Start Time: {format(parseISO(session?.start_time), "HH:mm")}</div>
+                        <div className="card-text">End Time: {format(parseISO(session?.end_time), "HH:mm")}</div>
                       </div>
                     </div>
                   </div>

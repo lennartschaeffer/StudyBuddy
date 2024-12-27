@@ -7,8 +7,8 @@ export type Task = {
 export type StudySession = {
   session_id: number;
   session_name: string;
-  session_date: string;
-  endtime: string;
+  start_time: string;
+  end_time: string;
   user_id: number;
   session_completed: boolean;
   checklist_id: number;

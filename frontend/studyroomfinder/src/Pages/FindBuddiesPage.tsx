@@ -17,7 +17,7 @@ const FindBuddiesPage = () => {
   
   const sendBuddyRequest  = async (receiver_id: number) => {
     console.log(user?.user_id, receiver_id)
-    await axios.post(`${API_URL}/friendrequests/send`,{
+    await axios.post(`${API_URL}/friends/send`,{
         sender_id: user?.user_id,
         receiver_id: receiver_id
     }).then((res) => {

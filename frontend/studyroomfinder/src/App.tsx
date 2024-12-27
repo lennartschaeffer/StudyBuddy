@@ -1,28 +1,33 @@
 import { Outlet } from "react-router-dom";
 import "./App.css";
-import Map from "./Components/Map";
-import NavBar from "./Components/NavBar";
+import { QueryClient, QueryClientProvider } from "react-query";
 import { UserProvider } from "./Context/useAuth";
 import { Toast, ToastContainer } from "react-bootstrap";
 import { useEffect } from "react";
 import { io } from "socket.io-client";
 import { API_URL } from "./apiRoute";
 import { toast } from "react-toastify";
+import { FriendsAndInvitesProvider } from "./Context/useGetFriendsAndInvites";
 
+const queryClient = new QueryClient();
 
 function App() {
-  const socket = io(API_URL)
+  const socket = io(API_URL);
   useEffect(() => {
     socket.on("receive_message", (data) => {
-      toast.dark(data.message)
-    })
-  },[socket])
+      toast.dark(data.message);
+    });
+  }, [socket]);
   return (
     <>
-    <UserProvider>
-      <Outlet />
-      <ToastContainer/>
-    </UserProvider>
+      <QueryClientProvider client={queryClient}>
+        <UserProvider>
+          <FriendsAndInvitesProvider>
+          <Outlet />
+          <ToastContainer />
+          </FriendsAndInvitesProvider>
+        </UserProvider>
+      </QueryClientProvider>
     </>
   );
 }

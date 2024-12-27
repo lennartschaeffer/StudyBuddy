@@ -42,7 +42,7 @@ const respondToFriendRequest = async (req, res, io) => {
     if (!["accepted", "rejected"].includes(response)) {
       return res.status(400).json({ error: "Invalid response." });
     }
-    
+
     //start transaction
     await pool.query("BEGIN");
 
@@ -65,7 +65,6 @@ const respondToFriendRequest = async (req, res, io) => {
       }
 
       const { sender_id, receiver_id } = updatedRequest.rows[0];
-      
 
       //insert the friendship into the friends table
       await pool.query(
@@ -77,7 +76,6 @@ const respondToFriendRequest = async (req, res, io) => {
 
       //emit web socket event
       io.emit("friendRequestResponse", { sender_id, receiver_id, response });
-
     } else {
       //if they choose to reject it, delete the row from the friendrequest table
       await pool.query(
@@ -102,8 +100,6 @@ const respondToFriendRequest = async (req, res, io) => {
     await pool.query("COMMIT");
 
     res.status(200).json({ message: `Friend request ${response}.` });
-
-    
   } catch (error) {
     await pool.query("ROLLBACK");
     console.error(error);
@@ -113,42 +109,105 @@ const respondToFriendRequest = async (req, res, io) => {
   }
 };
 
-//get all pending requests
-const getPendingRequests = async (req, res) => {
+//get all friends, friend requests, and group invites
+const getFriendsAndInvites = async (req, res) => {
+  const { user_id } = req.params;
   try {
-    const { receiver_id } = req.params;
-    const pendingFriendRequests = await pool.query(
-      `SELECT u.username, u.first_name, u.last_name, fr.friendrequest_id
-       FROM friendrequests fr
-        JOIN users u ON u.user_id = fr.sender_id
-        WHERE fr.status = 'pending'
-        AND fr.receiver_id = $1;`
-      ,[receiver_id]
-    );
-    const pendingGroupInvites = await pool.query(
-      `SELECT sgi.studygroup_invite_id, sg.name, sg.studygroup_id, u.username, u.first_name, u.last_name
-       FROM studygroup_invites sgi
-       JOIN users u ON u.user_id = sgi.sender_id
-       JOIN studygroups sg ON sg.studygroup_id = sgi.studygroup_id
-       WHERE sgi.status = 'pending'
-       AND sgi.receiver_id = $1;`
-      ,[receiver_id]
-    );
+    const [friendRequests, groupInvites, friends] = await Promise.all([
+      pool.query(
+        `SELECT u.username, u.first_name, u.last_name, fr.friendrequest_id
+         FROM friendrequests fr
+         JOIN users u ON u.user_id = fr.sender_id
+         WHERE fr.status = 'pending'
+         AND fr.receiver_id = $1;`,
+        [user_id]
+      ),
+      pool.query(
+        `SELECT sgi.studygroup_invite_id, sg.name, sg.studygroup_id, u.username, u.first_name, u.last_name
+         FROM studygroup_invites sgi
+         JOIN users u ON u.user_id = sgi.sender_id
+         JOIN studygroups sg ON sg.studygroup_id = sgi.studygroup_id
+         WHERE sgi.status = 'pending'
+         AND sgi.receiver_id = $1;`,
+        [user_id]
+      ),
+      pool.query(
+        `SELECT u.username, u.first_name, u.last_name, f.created_at, u.user_id
+         FROM friends f
+         JOIN users u ON (u.user_id = f.friend_id OR u.user_id = f.user_id)
+         WHERE (f.user_id = $1 OR f.friend_id = $1)
+         AND u.user_id != $1;`,
+        [user_id]
+      ),
+    ]);
 
     res.json({
-      friendRequests: pendingFriendRequests.rows ?? "No pending friend requests",
-      groupInvites: pendingGroupInvites.rows ?? "No pending group invites"
+      friends: friends.rows,
+      friendRequests: friendRequests.rows,
+      groupInvites: groupInvites.rows,
     });
+
   } catch (error) {
     console.error(error);
     res
       .status(500)
-      .send("Error sending friend request, please try again later.");
+      .send("Error getting friends and invites, please try again later.");
+  }
+};
+
+const removeFriend = async (req, res) => {
+  try {
+    const { user_id, friend_id } = req.params;
+    await pool.query("BEGIN");
+    const result = await pool.query(
+      `DELETE FROM friends 
+            WHERE (user_id = $1 AND friend_id = $2)
+            OR (user_id = $2 AND friend_id = $1)
+            ;`,
+      [user_id, friend_id]
+    );
+    //delete the friendship request as well
+    await pool.query(
+      `DELETE FROM friendrequests
+            WHERE (sender_id = $1 AND receiver_id = $2)
+            OR (sender_id = $2 AND receiver_id = $1)
+            ;`,
+      [user_id, friend_id]
+    );
+    await pool.query("COMMIT");
+    res.json({ message: "Friend removed" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Database error");
+  }
+};
+
+const getAllFriendsInSession = async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    const res = await pool.query(
+      `
+        SELECT u.username, u.first_name, u.last_name, u.user_id, s.endtime, s.session_name
+        FROM friends f
+        JOIN users u ON (u.user_id = f.friend_id OR u.user_id = f.user_id)
+	      JOIN studysessions s ON u.user_id = s.user_id
+        WHERE (f.user_id = $1 OR f.friend_id = $1)
+	      AND s.session_completed = false
+        AND u.user_id != $1;
+        `,
+      [user_id]
+    );
+    res.json(res.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Database error");
   }
 };
 
 module.exports = {
   sendFriendRequest,
   respondToFriendRequest,
-  getPendingRequests,
+  getFriendsAndInvites,
+  removeFriend,
+  getAllFriendsInSession,
 };

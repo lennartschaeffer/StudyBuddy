@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import "./HomePage.css";
 import NavBar from "../Components/NavBar";
 import StudySessionModal from "../Components/StudySessionModal";
@@ -7,73 +7,73 @@ import { FaCheckCircle } from "react-icons/fa";
 import { MdOutlineTimer } from "react-icons/md";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
-import axios from "axios";
-import { API_URL } from "../apiRoute";
 import { useAuth } from "../Context/useAuth";
 import { IoIosCheckmark } from "react-icons/io";
-import { StudySession, Task } from "../Models/StudySession";
 import { VscChecklist } from "react-icons/vsc";
 import { GiNightSleep } from "react-icons/gi";
+import { useMutation, useQuery, useQueryClient } from "react-query";
+import {
+  completeActiveStudySession,
+  completeTask,
+  getActiveSession,
+} from "../endpoints/StudySessions";
+import { format, parseISO } from "date-fns";
 
 const StudySessionPage = () => {
-  const [activeStudySession, setActiveStudySession] =
-    useState<StudySession | null>(null);
-  const [sessionStarted, setSessionStarted] = useState(false);
+  
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [timeLeft, setTimeLeft] = useState("");
+
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  const getActiveSession = async (initialLoad: boolean) => {
-    await axios
-      .get(`${API_URL}/studysessions/activeStudySession/${user?.user_id}`)
-      .then((res) => {
-        console.log(res);
-        if (res.data.tasks) {
-          const tasks: Task[] = res.data.tasks.map((task: Task) => {
-            return {
-              task_id: task.task_id,
-              task_name: task.task_name,
-              task_completed: task.task_completed,
-            };
-          });
-          const session: StudySession = {
-            session_id: res.data.session_id,
-            session_name: res.data.session_name,
-            session_date: res.data.session_date,
-            endtime: res.data.endtime,
-            user_id: res.data.user_id,
-            session_completed: res.data.session_completed,
-            checklist_id: res.data.checklist_id,
-            tasks: tasks,
-          };
-          setActiveStudySession(session);
-          setSessionStarted(true);
-          if(initialLoad){
-            toast.success("Study session started. You got this!");
-          }
-        }
-      });
-  };
+  const { data: activeStudySession, refetch } = useQuery(
+    ["activeStudySession", user?.user_id],
+    () => getActiveSession(user?.user_id!),
+    {
+      enabled: !!user?.user_id,
+      refetchOnMount: true,
+      onSuccess: () => {
+        toast.success("Active study session fetched.");
+      },
+      onError: (error) => {
+        console.error(error);
+        toast.error("Failed to fetch active study session.");
+      },
+    }
+  );
+
+  const completeTaskMutation = useMutation(completeTask, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(["activeStudySession", user?.user_id]);
+      toast.success("Task completed. Nice work!");
+    },
+    onError: (error) => {
+      toast.error("Error handling task completion." + error);
+    },
+  });
+
+  const completeSessionMutation = useMutation(completeActiveStudySession, {
+    onSuccess: () => {
+      queryClient.invalidateQueries(["activeStudySession", user?.user_id]);
+      toast("Session completed. Good work!");
+    },
+    onError: (error) => {
+      toast("Error: Could not end session. " + error);
+    },
+  });
 
   useEffect(() => {
-    getActiveSession(false);
-  }, []);
-
-  useEffect(() => {
-    if (sessionStarted) {
+    if (activeStudySession) {
       const interval = setInterval(() => {
         const now = new Date();
-        const endTime = new Date();
-        const sessionEndTime = activeStudySession?.endtime!;
-        const [hours, minutes] = sessionEndTime.split(":").map(Number);
-        endTime.setHours(hours, minutes, 0, 0);
+        const endTime = new Date(activeStudySession.end_time);
 
         const timeDifference = endTime.getTime() - now.getTime();
         if (timeDifference <= 0) {
           clearInterval(interval);
-          setSessionStarted(false);
           setTimeLeft("Session ended");
-          handleCompleteSession()
+          completeSessionMutation.mutate(user?.user_id!);
         } else {
           const hoursLeft = Math.floor(timeDifference / (1000 * 60 * 60));
           const minutesLeft = Math.floor(
@@ -86,39 +86,19 @@ const StudySessionPage = () => {
 
       return () => clearInterval(interval);
     }
-  }, [sessionStarted, activeStudySession?.endtime]);
-
-  const handleCompleteSession = async() => {
-     await axios.put(`${API_URL}/studysessions/completeActiveStudySession/${user?.user_id}`).then((res) => {
-      toast('Session completed. Good work!')
-     }).catch((err) => {
-      console.log(err)
-      toast('Error: Could not end session. '+err)
-     })
-  }
-
-  const handleCompleteTask = async (task: Task) => {
-    await axios
-      .put(`${API_URL}/studysessions/completeTask/${task?.task_id}`)
-      .then((res) => {
-        getActiveSession(false);
-        toast.success(`${task?.task_name} completed. Nice work!`);
-      })
-      .catch((err) => {
-        console.log(err);
-        toast.error("Error handling task completion." + err);
-      });
-  };
+  }, [activeStudySession, user?.user_id, completeSessionMutation]);
 
   return (
     <div className="Main vh-100">
       <NavBar />
-      {sessionStarted ? (
+      {activeStudySession ? (
         <div className="row h-75 mt-5 w-100">
           <div className="col-12">
             <div className="row">
               <div className="col-12">
-                <h1 className="text-light text-center">{activeStudySession?.session_name}</h1>
+                <h1 className="text-light text-center">
+                  {activeStudySession?.session_name}
+                </h1>
               </div>
             </div>
             <div className="row mt-5 d-flex justify-content-center">
@@ -130,7 +110,9 @@ const StudySessionPage = () => {
                   </div>
                   <div className="card-body">
                     <h3 className="">{timeLeft}</h3>
-                    <h6 className="">Ends at: {activeStudySession?.endtime}</h6>
+                    <h6 className="">
+                      Ends at: {format(parseISO(activeStudySession?.end_time), "HH:mm")}
+                    </h6>
                   </div>
                 </div>
               </div>
@@ -164,7 +146,9 @@ const StudySessionPage = () => {
                               ) : (
                                 <button
                                   className="btn btn-outline-success btn-sm"
-                                  onClick={() => handleCompleteTask(task)}
+                                  onClick={() =>
+                                    completeTaskMutation.mutate(task)
+                                  }
                                 >
                                   <FaCheckCircle size={20} />
                                 </button>
@@ -185,7 +169,8 @@ const StudySessionPage = () => {
             <div className="col-12 d-flex justify-content-center mt-5">
               <button className="btn btn-outline-info d-flex justify-content-around align-items-center w-25 p-3">
                 {" "}
-                <h5 className="m-0">End Session Early</h5> <GiNightSleep size={20} />
+                <h5 className="m-0">End Session Early</h5>{" "}
+                <GiNightSleep size={20} />
               </button>
             </div>
           </div>
@@ -204,7 +189,7 @@ const StudySessionPage = () => {
       <StudySessionModal
         show={showSessionModal}
         onClose={() => setShowSessionModal(false)}
-        onStartSession={getActiveSession}
+        onStartSession={() => refetch()}
       />
     </div>
   );

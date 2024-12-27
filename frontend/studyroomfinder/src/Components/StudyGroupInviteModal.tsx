@@ -6,6 +6,7 @@ import { API_URL } from "../apiRoute";
 import { Buddy } from "../Models/StudyBuddy";
 import { useAuth } from "../Context/useAuth";
 import { IoPersonCircleSharp } from "react-icons/io5";
+import { useGetFriendsAndInvites } from "../Context/useGetFriendsAndInvites";
 
 interface StudyGroupInviteModalProps {
   name: string;
@@ -20,32 +21,8 @@ const StudyGroupInviteModal: React.FC<StudyGroupInviteModalProps> = ({
   name,
   id,
 }) => {
-  const [friends, setFriends] = useState<Buddy[]>();
-  const [friendsLoaded, setFriendsLoaded] = useState<boolean>(false);
   const { user } = useAuth();
-
-  const getFriends = async () => {
-    await axios
-      .get(`${API_URL}/friends/${user?.user_id}`)
-      .then((res) => {
-        if (res.data.length > 0) {
-          const studyBuddies = res.data.map((buddy: Buddy) => {
-            return {
-              username: buddy.username,
-              first_name: buddy.first_name,
-              last_name: buddy.last_name,
-              user_id: buddy.user_id,
-            };
-          });
-          setFriends(studyBuddies);
-        }
-        setFriendsLoaded(true);
-      })
-      .catch((err) => {
-        console.log(err);
-        toast.error("Error fetching friends " + err);
-      });
-  };
+  const { friendsAndInvites } = useGetFriendsAndInvites();
 
   const handleInviteToStudyGroup = async (
     receiver_id: number,
@@ -70,12 +47,6 @@ const StudyGroupInviteModal: React.FC<StudyGroupInviteModalProps> = ({
       });
   };
 
-  useEffect(() => {
-    if (show && !friendsLoaded) {
-      getFriends();
-    }
-  }, [friendsLoaded, show]);
-
   return (
     <Modal show={show} aria-labelledby="contained-modal-title-vcenter" centered>
       <Modal.Header>
@@ -84,8 +55,8 @@ const StudyGroupInviteModal: React.FC<StudyGroupInviteModalProps> = ({
         </Modal.Title>
       </Modal.Header>
       <Modal.Body>
-        {friends ? (
-          friends.map((friend, id) => (
+        {friendsAndInvites?.friends.length ?? 0 > 0 ? (
+          friendsAndInvites?.friends.map((friend, id) => (
             <ListGroupItem key={id}>
               <div className="row">
                 <div className="col-2 d-flex align-items-center">
