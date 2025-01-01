@@ -1,6 +1,8 @@
-const pool = require("../db.js");
+import { Request, Response } from "express";
+import pool from "../db";
+import { Server } from "socket.io";
 
-const createStudySession = async (req, res, io) => {
+const createStudySession = async (req: Request, res: Response, io: Server) => {
   try {
     const { session_name, end_time, user_id, checklist, lat, lon } = req.body;
 
@@ -70,7 +72,7 @@ const createStudySession = async (req, res, io) => {
   }
 };
 
-const completeTask = async (req, res) => {
+const completeTask = async (req: Request, res: Response) => {
   try {
     const { task_id } = req.params;
 
@@ -87,7 +89,7 @@ const completeTask = async (req, res) => {
   }
 };
 
-const getActiveStudySession = async (req, res) => {
+const getActiveStudySession = async (req: Request, res: Response) => {
   try {
     const { user_id } = req.params;
 
@@ -144,7 +146,7 @@ const getActiveStudySession = async (req, res) => {
   }
 };
 
-const getMapStudySessionInfo = async (req, res) => {
+const getMapStudySessionInfo = async (req: Request, res: Response) => {
   const { user_id } = req.params;
   try {
     //get the users active study session
@@ -207,7 +209,7 @@ const getMapStudySessionInfo = async (req, res) => {
   }
 };
 
-const completeActiveStudySessionEarly = async (req, res) => {
+const completeActiveStudySessionEarly = async (req: Request, res: Response) => {
   try {
       const { session_id, session_type } = req.params;
       if(session_type === 'solo'){
@@ -232,7 +234,7 @@ const completeActiveStudySessionEarly = async (req, res) => {
     res.status(500).send("Database error");
   }
 }
-const completeActiveStudySession = async (req, res) => {
+const completeActiveStudySession = async (req: Request, res: Response) => {
   try {
     const { user_id } = req.params;
     await pool.query(
@@ -246,7 +248,7 @@ const completeActiveStudySession = async (req, res) => {
   }
 };
 
-const getRecentStudySessions = async (req, res) => {
+const getRecentStudySessions = async (req: Request, res: Response) => {
   try {
     const { user_id } = req.params;
     const recentSessions = await pool.query(
@@ -278,7 +280,7 @@ const getRecentStudySessions = async (req, res) => {
   }
 };
 
-const createGroupStudySession = async (req, res) => {
+const createGroupStudySession = async (req: Request, res: Response) => {
   try {
     const { studygroup_id, name, start_time, end_time } = req.body;
     //check if studygroup is not already in session, ie start_time < NOW() < end_time
@@ -305,7 +307,7 @@ const createGroupStudySession = async (req, res) => {
   }
 };
 
-const getUpcomingStudySessionsByUser = async (req, res) => {
+const getUpcomingStudySessionsByUser = async (req: Request, res: Response) => {
   try {
     const { user_id } = req.params;
     const upcomingSessions = await pool.query(
@@ -324,7 +326,7 @@ const getUpcomingStudySessionsByUser = async (req, res) => {
   }
 };
 
-module.exports = {
+export{
   createStudySession,
   completeTask,
   getActiveStudySession,

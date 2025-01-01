@@ -64,7 +64,7 @@ export const UserProvider = ({ children }: Props) => {
 
   const loginUser = async (username: string, password: string) => {
     await axios
-      .post(`${API_URL}/login`, {
+      .post(`${API_URL}/auth/login`, {
         username: username,
         password: password,
       })

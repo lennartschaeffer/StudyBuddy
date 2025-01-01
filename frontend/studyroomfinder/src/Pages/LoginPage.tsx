@@ -4,6 +4,7 @@ import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import { useAuth } from "../Context/useAuth";
 import StudyIcon from "../icons/studying.png";
+import { toast, ToastContainer } from "react-toastify";
 
 const LoginPage = () => {
   const [username, setUserName] = useState("");
@@ -12,7 +13,7 @@ const LoginPage = () => {
 
   const handleLogin = async () => {
     if (!username || !password) {
-      alert("Please fill out all fields.");
+      toast.error("Please fill out all fields.");
       return;
     }
     loginUser(username, password);
@@ -63,6 +64,7 @@ const LoginPage = () => {
           </Form>
         </div>
       </div>
+      <ToastContainer/>
     </div>
   );
 };

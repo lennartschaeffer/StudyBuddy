@@ -1,6 +1,8 @@
-const pool = require("../db");
+import { Request, Response } from "express";
+import pool from "../db";
+import { Server } from "socket.io";
 
-const sendFriendRequest = async (req, res, io) => {
+const sendFriendRequest = async (req: Request, res: Response, io: Server) => {
   try {
     const { sender_id, receiver_id } = req.body;
     //check if request already exists
@@ -14,20 +16,18 @@ const sendFriendRequest = async (req, res, io) => {
       [sender_id, receiver_id]
     );
     if (exists.rows.length > 0) {
-      return res.status(400).json({ error: "Friend request already sent." });
+      return res.status(400).send("Friend request already sent.");
     }
-
     await pool.query(
       `
             INSERT INTO friendrequests (sender_id, receiver_id) VALUES($1,$2)
             `,
       [sender_id, receiver_id]
     );
-
     //emit web socket event
     io.emit("friendRequest", { sender_id, receiver_id });
 
-    res.status(201).json({ message: "Friend Request Sent!" });
+    res.status(201).send("Friend Request Sent!");
   } catch (error) {
     console.error(error);
     res
@@ -36,11 +36,11 @@ const sendFriendRequest = async (req, res, io) => {
   }
 };
 
-const respondToFriendRequest = async (req, res, io) => {
+const respondToFriendRequest = async (req: Request, res: Response, io: Server) => {
   try {
     const { request_id, response } = req.body;
     if (!["accepted", "rejected"].includes(response)) {
-      return res.status(400).json({ error: "Invalid response." });
+      return res.status(400).send("Invalid response.");
     }
 
     //start transaction
@@ -61,7 +61,7 @@ const respondToFriendRequest = async (req, res, io) => {
 
       if (updatedRequest.rows.length === 0) {
         await pool.query("ROLLBACK");
-        return res.status(404).json({ error: "Friend request not found." });
+        return res.status(404).send("Friend request not found.");
       }
 
       const { sender_id, receiver_id } = updatedRequest.rows[0];
@@ -99,7 +99,7 @@ const respondToFriendRequest = async (req, res, io) => {
 
     await pool.query("COMMIT");
 
-    res.status(200).json({ message: `Friend request ${response}.` });
+    res.status(200).send(`Friend request ${response}.`);
   } catch (error) {
     await pool.query("ROLLBACK");
     console.error(error);
@@ -110,7 +110,7 @@ const respondToFriendRequest = async (req, res, io) => {
 };
 
 //get all friends, friend requests, and group invites
-const getFriendsAndInvites = async (req, res) => {
+const getFriendsAndInvites = async (req: Request, res: Response) => {
   const { user_id } = req.params;
   try {
     const [friendRequests, groupInvites, friends] = await Promise.all([
@@ -155,7 +155,7 @@ const getFriendsAndInvites = async (req, res) => {
   }
 };
 
-const removeFriend = async (req, res) => {
+const removeFriend = async (req: Request, res: Response) => {
   try {
     const { user_id, friend_id } = req.params;
     await pool.query("BEGIN");
@@ -182,10 +182,10 @@ const removeFriend = async (req, res) => {
   }
 };
 
-const getAllFriendsInSession = async (req, res) => {
+const getAllFriendsInSession = async (req: Request, res: Response) => {
   try {
     const { user_id } = req.params;
-    const res = await pool.query(
+    const friends = await pool.query(
       `
         SELECT u.username, u.first_name, u.last_name, u.user_id, s.endtime, s.session_name
         FROM friends f
@@ -197,14 +197,14 @@ const getAllFriendsInSession = async (req, res) => {
         `,
       [user_id]
     );
-    res.json(res.rows);
+    res.json(friends.rows);
   } catch (error) {
     console.error(error);
     res.status(500).send("Database error");
   }
 };
 
-module.exports = {
+export{
   sendFriendRequest,
   respondToFriendRequest,
   getFriendsAndInvites,

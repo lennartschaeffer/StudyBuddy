@@ -1,7 +1,8 @@
-const { get } = require("http");
-const pool = require("../db.js");
+import { Request, Response } from "express";
 
-const getLocations = async (req, res) => {
+import pool from "../db";
+
+const getLocations = async (req: Request, res: Response) => {
   try {
     const result = await pool.query("SELECT * FROM locations;");
     res.json(result.rows);
@@ -11,7 +12,7 @@ const getLocations = async (req, res) => {
   }
 };
 
-const createLocation = async (req, res) => {
+const createLocation = async (req: Request, res: Response) => {
   try {
     const { building_name, room_name, latitude, longitude, busyness_level, additional_info } = req.body;
     const newLocation = await pool.query(

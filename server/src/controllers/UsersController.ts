@@ -1,6 +1,8 @@
-const pool = require("../db.js");
+import { Request, Response } from "express";
 
-const getPotentialFriends = async(req, res) => {
+import pool from "../db";
+
+const getPotentialFriends = async(req: Request, res: Response) => {
     const { user_id } = req.params;
     try {
         const users = await pool.query(
@@ -18,4 +20,4 @@ const getPotentialFriends = async(req, res) => {
     }
 }
 
-module.exports = {getAllUsers: getPotentialFriends}
+export { getPotentialFriends}
