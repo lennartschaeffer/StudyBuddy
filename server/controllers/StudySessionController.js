@@ -23,9 +23,16 @@ const createStudySession = async (req, res, io) => {
 
     //add the session to the study session table
     const newStudySession = await pool.query(
-      `INSERT INTO studysessions (end_time, user_id, session_completed, checklist_id, start_time, session_name, lat, lon) 
-      VALUES($1, $2, $3, $4, NOW(), $5, $6, $7) RETURNING *;`,
-      [end_time, user_id, false, newChecklist.rows[0].checklist_id, session_name, lat, lon]
+      `INSERT INTO studysessions (end_time, user_id, checklist_id, start_time, session_name, lat, lon) 
+      VALUES($1, $2, $3, NOW(),$4, $5, $6) RETURNING *;`,
+      [
+        end_time,
+        user_id,
+        newChecklist.rows[0].checklist_id,
+        session_name,
+        lat,
+        lon,
+      ]
     );
 
     //update checklist with the session id
@@ -89,14 +96,26 @@ const getActiveStudySession = async (req, res) => {
       ` SELECT * FROM studysessions
         JOIN studysession_checklists USING (checklist_id)
         JOIN studysession_tasks USING (checklist_id)
-        WHERE NOW() < end_time
+        WHERE start_time < NOW()
+        AND end_time > NOW()
         AND user_id = $1;
      `,
       [user_id]
     );
-    if (!session.rows[0]) {
+    const groupSession = await pool.query(
+      `SELECT group_name, session_name, start_time, end_time, studygroup_id, group_studysessions_id 
+       FROM group_studysessions
+       JOIN user_studygroups USING (studygroup_id)
+       JOIN studygroups USING (studygroup_id)
+       WHERE user_id = $1
+       AND start_time < NOW()
+       AND NOW() < end_time;
+       `,
+      [user_id]
+    );
+    if (!session.rows[0] && !groupSession.rows[0]) {
       res.send("User currently has no active session");
-    } else {
+    } else if (session.rows[0]) {
       const tasks = session.rows.map((task) => {
         return {
           task_id: task.task_id,
@@ -105,15 +124,19 @@ const getActiveStudySession = async (req, res) => {
         };
       });
       res.json({
-        session_id: session.rows[0].session_id,
-        session_name: session.rows[0].session_name,
-        start_time: session.rows[0].start_time,
-        end_time: session.rows[0].end_time,
-        user_id: session.rows[0].user_id,
-        session_completed: session.rows[0].session_completed,
-        checklist_id: session.rows[0].checklist_id,
-        tasks: tasks,
+        solo_session: {
+          session_id: session.rows[0].session_id,
+          session_name: session.rows[0].session_name,
+          start_time: session.rows[0].start_time,
+          end_time: session.rows[0].end_time,
+          user_id: session.rows[0].user_id,
+          session_completed: session.rows[0].session_completed,
+          checklist_id: session.rows[0].checklist_id,
+          tasks: tasks,
+        },
       });
+    } else {
+      res.json({ group_session: groupSession.rows[0] });
     }
   } catch (error) {
     console.error(error);
@@ -184,6 +207,31 @@ const getMapStudySessionInfo = async (req, res) => {
   }
 };
 
+const completeActiveStudySessionEarly = async (req, res) => {
+  try {
+      const { session_id, session_type } = req.params;
+      if(session_type === 'solo'){
+          await pool.query(
+              `UPDATE studysessions 
+              SET end_time = NOW() 
+              WHERE session_id = $1`,
+              [session_id]
+          );
+      }
+      else{
+          await pool.query(
+              `UPDATE group_studysessions 
+              SET end_time = NOW() 
+              WHERE group_studysessions_id = $1`,
+              [session_id]
+          );
+      }
+      res.status(200).send("Study session completed early.");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Database error");
+  }
+}
 const completeActiveStudySession = async (req, res) => {
   try {
     const { user_id } = req.params;
@@ -204,14 +252,75 @@ const getRecentStudySessions = async (req, res) => {
     const recentSessions = await pool.query(
       `SELECT * FROM studysessions 
             WHERE user_id = $1
+            AND NOW() > end_time
             ORDER BY start_time DESC
-            LIMIT 3;`,
+            LIMIT 2;`,
       [user_id]
     );
-    res.json(recentSessions.rows);
+    const recentGroupSessions = await pool.query(
+      `SELECT group_name, session_name, start_time, end_time
+        FROM group_studysessions
+        JOIN user_studygroups USING (studygroup_id)
+        JOIN studygroups USING (studygroup_id)
+        WHERE user_id = $1
+        AND NOW() > end_time
+        ORDER BY start_time DESC
+        LIMIT 2;`,
+      [user_id]
+    );
+    res.json({
+      userSessions: recentSessions.rows,
+      groupSessions: recentGroupSessions.rows,
+    });
   } catch (error) {
     console.error(error);
     res.status(500).send("database error");
+  }
+};
+
+const createGroupStudySession = async (req, res) => {
+  try {
+    const { studygroup_id, name, start_time, end_time } = req.body;
+    //check if studygroup is not already in session, ie start_time < NOW() < end_time
+    const check = await pool.query(
+      `SELECT * FROM group_studysessions
+          WHERE studygroup_id = $1
+          AND NOW() < end_time
+          AND start_time < NOW();`,
+      [studygroup_id]
+    );
+    if (check.rows.length > 0) {
+      res.send("Study group is already in session");
+      return;
+    }
+    const newStudySession = await pool.query(
+      `INSERT INTO group_studysessions (studygroup_id, session_name, start_time, end_time)
+          VALUES ($1, $2, $3, $4) RETURNING *;`,
+      [studygroup_id, name, start_time, end_time]
+    );
+    res.json(newStudySession.rows[0]);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Database error");
+  }
+};
+
+const getUpcomingStudySessionsByUser = async (req, res) => {
+  try {
+    const { user_id } = req.params;
+    const upcomingSessions = await pool.query(
+      `SELECT group_name, session_name, start_time, end_time 
+       FROM group_studysessions
+       JOIN user_studygroups USING (studygroup_id)
+       JOIN studygroups USING (studygroup_id)
+       WHERE user_id = $1
+       AND start_time > NOW();`,
+      [user_id]
+    );
+    res.json(upcomingSessions.rows);
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Database error");
   }
 };
 
@@ -222,4 +331,7 @@ module.exports = {
   completeActiveStudySession,
   getRecentStudySessions,
   getMapStudySessionInfo,
+  createGroupStudySession,
+  getUpcomingStudySessionsByUser,
+  completeActiveStudySessionEarly
 };

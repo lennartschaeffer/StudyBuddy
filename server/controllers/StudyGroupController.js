@@ -2,15 +2,15 @@ const pool = require("../db.js");
 
 const createStudyGroup = async (req, res) => {
   try {
-    const { user_id, name } = req.body;
+    const { user_id, group_name } = req.body;
     await pool.query("BEGIN");
     const newGroup = await pool.query(
       `
-                INSERT INTO studygroups (name, created_at) 
+                INSERT INTO studygroups (group_name, created_at) 
                 VALUES ($1, NOW()) 
                 RETURNING *;
             `,
-      [name]
+      [group_name]
     );
 
     if (newGroup.rows.length == 0) {
@@ -60,7 +60,7 @@ const getStudyGroupsByUser = async (req, res) => {
             WITH user_groups AS (
                 SELECT 
                     sg.studygroup_id,
-                    sg.name
+                    sg.group_name
                 FROM 
                     studygroups sg
                 JOIN 
@@ -70,7 +70,7 @@ const getStudyGroupsByUser = async (req, res) => {
             )
             SELECT 
                 ug.studygroup_id,
-                ug.name,
+                ug.group_name,
                 u.user_id AS member_id,
                 u.first_name AS member_name
             FROM 
@@ -80,7 +80,7 @@ const getStudyGroupsByUser = async (req, res) => {
             INNER JOIN 
                 users u USING(user_id)
             ORDER BY 
-                ug.studygroup_id, ug.name;
+                ug.studygroup_id, ug.group_name;
             `,[user_id] 
         )
         if(studyGroups.rows.length > 0){
@@ -88,7 +88,7 @@ const getStudyGroupsByUser = async (req, res) => {
                 if(!acc[group.studygroup_id]){
                     acc[group.studygroup_id] = {
                         studygroup_id: group.studygroup_id,
-                        name: group.name,
+                        group_name: group.group_name,
                         members: []
                     }
                 }

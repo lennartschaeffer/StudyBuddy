@@ -13,15 +13,18 @@ import { VscChecklist } from "react-icons/vsc";
 import { GiNightSleep } from "react-icons/gi";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import {
+  completeActiveSessionEarly,
   completeActiveStudySession,
   completeTask,
   getActiveSession,
 } from "../endpoints/StudySessions";
 import { format, parseISO } from "date-fns";
+import { BiGroup, BiUser } from "react-icons/bi";
+import CreateGroupStudySessionModal from "../Components/CreateGroupStudySessionModal";
 
 const StudySessionPage = () => {
-  
   const [showSessionModal, setShowSessionModal] = useState(false);
+  const [showGroupSessionModal, setShowGroupSessionModal] = useState(false);
   const [timeLeft, setTimeLeft] = useState("");
 
   const { user } = useAuth();
@@ -34,11 +37,25 @@ const StudySessionPage = () => {
       enabled: !!user?.user_id,
       refetchOnMount: true,
       onSuccess: () => {
-        toast.success("Active study session fetched.");
+        console.log("Fetched active study session.", activeStudySession?.session);
       },
       onError: (error) => {
         console.error(error);
         toast.error("Failed to fetch active study session.");
+      },
+    }
+  );
+
+  const completeSessionEarlyMutation = useMutation(
+    ({ sessionId, sessionType }: { sessionId: number; sessionType: string }) =>
+      completeActiveSessionEarly(sessionId, sessionType),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(["activeStudySession", user?.user_id]);
+        toast("Session completed. Good work!");
+      },
+      onError: (error) => {
+        toast("Error: Could not end session. " + error);
       },
     }
   );
@@ -64,16 +81,14 @@ const StudySessionPage = () => {
   });
 
   useEffect(() => {
-    if (activeStudySession) {
+    if (activeStudySession?.session) {
       const interval = setInterval(() => {
         const now = new Date();
-        const endTime = new Date(activeStudySession.end_time);
-
+        const endTime = new Date(activeStudySession?.session?.end_time!);
         const timeDifference = endTime.getTime() - now.getTime();
         if (timeDifference <= 0) {
           clearInterval(interval);
           setTimeLeft("Session ended");
-          completeSessionMutation.mutate(user?.user_id!);
         } else {
           const hoursLeft = Math.floor(timeDifference / (1000 * 60 * 60));
           const minutesLeft = Math.floor(
@@ -91,13 +106,13 @@ const StudySessionPage = () => {
   return (
     <div className="Main vh-100">
       <NavBar />
-      {activeStudySession ? (
+      {activeStudySession?.session ? (
         <div className="row h-75 mt-5 w-100">
           <div className="col-12">
             <div className="row">
               <div className="col-12">
                 <h1 className="text-light text-center">
-                  {activeStudySession?.session_name}
+                  {activeStudySession?.session.session_name}
                 </h1>
               </div>
             </div>
@@ -111,7 +126,11 @@ const StudySessionPage = () => {
                   <div className="card-body">
                     <h3 className="">{timeLeft}</h3>
                     <h6 className="">
-                      Ends at: {format(parseISO(activeStudySession?.end_time), "HH:mm")}
+                      Ends at:{" "}
+                      {format(
+                        parseISO(activeStudySession?.session?.end_time!),
+                        "HH:mm"
+                      )}
                     </h6>
                   </div>
                 </div>
@@ -126,8 +145,8 @@ const StudySessionPage = () => {
                     <VscChecklist size={25} />
                   </div>
                   <div className="card-body">
-                    {activeStudySession?.tasks &&
-                    activeStudySession.tasks.length > 0 ? (
+                    {/* {activeStudySession?.session_type=='solo' &&
+                    activeStudySession?.session.length > 0 ? (
                       <div className="mt-3">
                         <ListGroup>
                           {activeStudySession.tasks.map((task, index) => (
@@ -161,13 +180,21 @@ const StudySessionPage = () => {
                       <h6 className="text-success">
                         No more tasks to complete!
                       </h6>
-                    )}
+                    )} */}
                   </div>
                 </div>
               </div>
             </div>
             <div className="col-12 d-flex justify-content-center mt-5">
-              <button className="btn btn-outline-info d-flex justify-content-around align-items-center w-25 p-3">
+              <button
+                className="btn btn-outline-info d-flex justify-content-around align-items-center w-25 p-3"
+                onClick={() =>
+                  completeSessionEarlyMutation.mutate({
+                    sessionId: activeStudySession?.session.session_id!,
+                    sessionType: activeStudySession?.session_type!,
+                  })
+                }
+              >
                 {" "}
                 <h5 className="m-0">End Session Early</h5>{" "}
                 <GiNightSleep size={20} />
@@ -177,12 +204,46 @@ const StudySessionPage = () => {
         </div>
       ) : (
         <div className="container h-75 mt-5 d-flex flex-column justify-content-center align-items-center">
-          <button
-            className="btn btn-light btn-lg"
-            onClick={() => setShowSessionModal(true)}
-          >
-            <b>Start a Session</b>
-          </button>
+          <div className="row w-100 d-flex justify-content-center">
+            <div className="col-5">
+              <div className="card h-100">
+                <div className="card-body">
+                  <h3>
+                    <strong>Solo Study Session</strong>
+                  </h3>
+                  <p className="text-muted">
+                    Focus on your individual study goals
+                  </p>
+                  <button
+                    className="btn btn-dark d-block w-100"
+                    onClick={() => setShowSessionModal(true)}
+                  >
+                    <BiUser className="mr-1" />
+                    Start Solo Session
+                  </button>
+                </div>
+              </div>
+            </div>
+            <div className="col-5">
+              <div className="card h-100">
+                <div className="card-body">
+                  <h3>
+                    <strong>Group Study Session</strong>
+                  </h3>
+                  <p className="text-muted">
+                    Collaborate with your study buddies
+                  </p>
+                  <button
+                    className="btn btn-dark d-block w-100"
+                    onClick={() => setShowGroupSessionModal(true)}
+                  >
+                    <BiGroup className="mr-1" />
+                    Start Group Session
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
         </div>
       )}
       <ToastContainer />
@@ -190,6 +251,10 @@ const StudySessionPage = () => {
         show={showSessionModal}
         onClose={() => setShowSessionModal(false)}
         onStartSession={() => refetch()}
+      />
+      <CreateGroupStudySessionModal
+        show={showGroupSessionModal}
+        onClose={() => setShowGroupSessionModal(false)}
       />
     </div>
   );

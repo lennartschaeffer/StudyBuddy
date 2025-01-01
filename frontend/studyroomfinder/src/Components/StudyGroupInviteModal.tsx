@@ -1,16 +1,15 @@
-import axios from "axios";
 import React, { useEffect, useState } from "react";
 import { Button, Form, ListGroupItem, Modal } from "react-bootstrap";
 import { toast, ToastContainer } from "react-toastify";
-import { API_URL } from "../apiRoute";
-import { Buddy } from "../Models/StudyBuddy";
 import { useAuth } from "../Context/useAuth";
 import { IoPersonCircleSharp } from "react-icons/io5";
 import { useGetFriendsAndInvites } from "../Context/useGetFriendsAndInvites";
+import { useMutation, useQuery, useQueryClient } from "react-query";
+import { inviteToStudyGroup } from "../endpoints/StudyGroups";
 
 interface StudyGroupInviteModalProps {
   name: string;
-  id: number;
+  studygroup_id: number;
   show: boolean;
   onClose: () => void;
 }
@@ -19,33 +18,32 @@ const StudyGroupInviteModal: React.FC<StudyGroupInviteModalProps> = ({
   show,
   onClose,
   name,
-  id,
+  studygroup_id,
 }) => {
+  const queryClient = useQueryClient();
   const { user } = useAuth();
   const { friendsAndInvites } = useGetFriendsAndInvites();
 
-  const handleInviteToStudyGroup = async (
-    receiver_id: number,
-  ) => {
-    if (!receiver_id || !id) {
-      console.log(receiver_id, id);
-      toast.error("Could not send invite.");
-      return;
-    }
-    await axios
-      .post(`${API_URL}/studygroups/invite`, {
-        sender_id: user?.user_id,
-        receiver_id: receiver_id,
-        studygroup_id: id,
-      })
-      .then((res) => {
-        toast.success("Invite sent successfully.");
-      })
-      .catch((err) => {
-        console.log(err);
-        toast.error("Error sending invite.");
-      });
-  };
+  const inviteToStudyGroupMutation = useMutation(
+      ({
+        sender_id,
+        receiver_id,
+        studygroup_id
+      }: {
+        sender_id: number;
+        receiver_id: number;
+        studygroup_id: number;
+      }) => inviteToStudyGroup(sender_id, receiver_id, studygroup_id),
+      {
+        onSuccess: () => {
+          toast.success("Sent group invite.");
+          queryClient.invalidateQueries("studyGroups");
+        },
+        onError: (error) => {
+          toast.error("Error responding to group invite " + error);
+        },
+      }
+    );
 
   return (
     <Modal show={show} aria-labelledby="contained-modal-title-vcenter" centered>
@@ -74,7 +72,11 @@ const StudyGroupInviteModal: React.FC<StudyGroupInviteModalProps> = ({
                   <button
                     className="btn btn-outline-success"
                     onClick={() =>
-                      handleInviteToStudyGroup(friend?.user_id)
+                      inviteToStudyGroupMutation.mutate({
+                        sender_id: user?.user_id!,
+                        receiver_id: friend.user_id,
+                        studygroup_id: studygroup_id,
+                      })
                     }
                   >
                     Invite Friend

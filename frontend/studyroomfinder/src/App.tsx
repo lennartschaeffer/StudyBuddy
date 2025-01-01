@@ -8,6 +8,7 @@ import { io } from "socket.io-client";
 import { API_URL } from "./apiRoute";
 import { toast } from "react-toastify";
 import { FriendsAndInvitesProvider } from "./Context/useGetFriendsAndInvites";
+import { StudyGroupProvider } from "./Context/useGetStudyGroups";
 
 const queryClient = new QueryClient();
 
@@ -23,8 +24,10 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <UserProvider>
           <FriendsAndInvitesProvider>
-          <Outlet />
-          <ToastContainer />
+            <StudyGroupProvider>
+              <Outlet />
+            </StudyGroupProvider>
+            <ToastContainer />
           </FriendsAndInvitesProvider>
         </UserProvider>
       </QueryClientProvider>

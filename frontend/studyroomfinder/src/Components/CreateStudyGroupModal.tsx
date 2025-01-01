@@ -2,8 +2,8 @@ import { useState } from "react";
 import { Modal, Button, Form, Toast } from "react-bootstrap";
 import { useAuth } from "../Context/useAuth";
 import { toast, ToastContainer } from "react-toastify";
-import axios from "axios";
-import { API_URL } from "../apiRoute";
+import { useMutation, useQueryClient } from "react-query";
+import { createStudyGroup } from "../endpoints/StudyGroups";
 
 interface CreateStudyGroupModalProps {
   show: boolean;
@@ -16,27 +16,22 @@ const CreateStudyGroupModal: React.FC<CreateStudyGroupModalProps> = ({
 }) => {
   const [groupName, setGroupName] = useState<string>("");
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
-  const handleCreateStudyGroup = async () => {
-    if (!groupName) {
-      toast.error("Please fill out all fields.");
-      return;
-    }
-    await axios
-      .post(`${API_URL}/studygroups`, {
-        user_id: user?.user_id,
-        name: groupName,
-      })
-      .then((res) => {
-        toast.success("Study group created successfully.");
-        setGroupName("");
+  const createStudyGroupMutation = useMutation(
+    () =>
+   createStudyGroup(groupName ?? 'Study Group', user?.user_id!),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries("studyGroups");
+        toast.success("Created Study Group");
         onClose();
-      })
-      .catch((err) => {
-        console.log(err);
-        toast.error("Error creating study group.");
-      });
-  };
+      },
+      onError: (error) => {
+        toast.error("Error creating study group " + error);
+      },
+    }
+  );
 
   return (
     <Modal show={show} aria-labelledby="contained-modal-title-vcenter" centered>
@@ -58,7 +53,7 @@ const CreateStudyGroupModal: React.FC<CreateStudyGroupModalProps> = ({
         </Form>
       </Modal.Body>
       <Modal.Footer>
-        <Button variant="primary" onClick={handleCreateStudyGroup}>
+        <Button variant="primary" onClick={() => createStudyGroupMutation.mutate()}>
           Submit
         </Button>
         <Button variant="secondary" onClick={onClose}>

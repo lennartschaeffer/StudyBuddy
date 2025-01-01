@@ -8,7 +8,6 @@ import { Friend } from "../Models/RequestsAndInvites";
 import { useGetFriendsAndInvites } from "../Context/useGetFriendsAndInvites";
 
 import {
-  getFriendRequestsAndGroupInvites,
   removeFriend,
   respondToFriendRequest,
   respondToGroupInvite,

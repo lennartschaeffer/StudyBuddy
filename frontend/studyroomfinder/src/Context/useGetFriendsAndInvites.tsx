@@ -4,7 +4,7 @@ import { useAuth } from "./useAuth";
 import { useQuery } from "react-query";
 import { getFriendRequestsAndGroupInvites } from "../endpoints/FriendRequests";
 
-export type FriendsAndInvitesContext = {
+type FriendsAndInvitesContext = {
   friendsAndInvites: FriendsAndInvites | undefined;
   refetch: () => void;
 };
@@ -13,7 +13,7 @@ const FriendsAndInvitesContext = createContext<FriendsAndInvitesContext>(
   {} as FriendsAndInvitesContext
 );
 
-type Props = { children: React.ReactNode };
+export type Props = { children: React.ReactNode };
 
 export const FriendsAndInvitesProvider = ({ children }: Props) => {
   const { user } = useAuth();

@@ -123,7 +123,7 @@ const getFriendsAndInvites = async (req, res) => {
         [user_id]
       ),
       pool.query(
-        `SELECT sgi.studygroup_invite_id, sg.name, sg.studygroup_id, u.username, u.first_name, u.last_name
+        `SELECT sgi.studygroup_invite_id, sg.group_name, sg.studygroup_id, u.username, u.first_name, u.last_name
          FROM studygroup_invites sgi
          JOIN users u ON u.user_id = sgi.sender_id
          JOIN studygroups sg ON sg.studygroup_id = sgi.studygroup_id
