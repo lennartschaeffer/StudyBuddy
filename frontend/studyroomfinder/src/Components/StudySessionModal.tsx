@@ -31,20 +31,11 @@ const StudySessionModal: React.FC<StudySessionModalProps> = ({
       alert("Please fill out all fields.");
       return;
     }
-    //get current date
-    const currentDate = new Date();
-    const [hours, minutes] = time.split(":").map(Number);
-
-    //set hours and minutes
-    currentDate.setHours(hours, minutes, 0, 0);
-
-    //convcert to ISO string
-    const endTimeISO = currentDate.toISOString();
 
     await axios
       .post(`${API_URL}/studysessions`, {
         session_name: sessionName,
-        end_time: endTimeISO,
+        end_time: time,
         user_id: user?.user_id,
         checklist: checklist,
         lat: location?.lat,
@@ -102,7 +93,7 @@ const StudySessionModal: React.FC<StudySessionModalProps> = ({
           <Form.Group className="mb-3" controlId="formBasicEmail">
             <Form.Label>What time will you be studying until?</Form.Label>
             <Form.Control
-              type="time"
+              type="datetime-local"
               onChange={(e) => setTime(e.target.value)}
             />
           </Form.Group>

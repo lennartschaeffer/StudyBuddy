@@ -1,7 +1,7 @@
 import axios from "axios";
 import { API_URL } from "../apiRoute";
-import { StudySession, Task } from "../Models/StudySession";
-import { GroupStudySession } from "../Models/StudyGroup";
+import { SoloStudySession, Task } from "../Models/StudySession";
+import { GroupStudySession } from "../Models/StudySession";
 
 export const getActiveSession = async (userId: number) => {
   const res = await axios.get(
@@ -17,15 +17,15 @@ export const getActiveSession = async (userId: number) => {
         task_completed: task.task_completed,
       }));
     }
-    const session: StudySession = {
+    const session: SoloStudySession = {
       session_id: res.data.solo_session.session_id,
       session_name: res.data.solo_session.session_name,
       start_time: res.data.solo_session.start_time,
       end_time: res.data.solo_session.end_time,
       user_id: res.data.solo_session.user_id,
-      session_completed: res.data.solo_session.session_completed,
       checklist_id: res.data.solo_session.checklist_id,
       tasks: tasks,
+
     };
     return { session_type: "solo", session };
   }

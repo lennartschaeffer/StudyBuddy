@@ -57,9 +57,8 @@ const FindBuddiesPage = () => {
   return (
     <div className="Main vh-100">
       <div className="h-100">
-        <NavBar />
         <div className="container">
-          <div className="row mt-5">
+          <div className="row pt-5">
             <div className="col-3"></div>
             <div className="col-5">
               <h2 className="text-center text-light">Find A Study Buddy</h2>

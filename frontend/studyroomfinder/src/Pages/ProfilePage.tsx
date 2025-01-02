@@ -2,7 +2,7 @@ import "./HomePage.css";
 import NavBar from "../Components/NavBar";
 import { useState } from "react";
 import { useAuth } from "../Context/useAuth";
-import { StudySession } from "../Models/StudySession";
+import { SoloStudySession } from "../Models/StudySession";
 import { BiUserCircle } from "react-icons/bi";
 import { CiSettings } from "react-icons/ci";
 import { IoMdTime } from "react-icons/io";
@@ -19,8 +19,7 @@ const ProfilePage = () => {
   return (
     <div className="Main vh-100">
       <div className="h-100">
-        <NavBar />
-        <div className="container mt-5">
+        <div className="container pt-5">
           <div className="row w-100">
             <div className="card w-100">
               <div className="card-body">

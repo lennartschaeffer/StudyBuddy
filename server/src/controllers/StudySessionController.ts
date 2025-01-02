@@ -96,29 +96,19 @@ const getActiveStudySession = async (req: Request, res: Response) => {
     //get the users active study session
     const session = await pool.query(
       ` SELECT * FROM studysessions
-        JOIN studysession_checklists USING (checklist_id)
-        JOIN studysession_tasks USING (checklist_id)
         WHERE start_time < NOW()
         AND end_time > NOW()
         AND user_id = $1;
      `,
       [user_id]
     );
-    const groupSession = await pool.query(
-      `SELECT group_name, session_name, start_time, end_time, studygroup_id, group_studysessions_id 
-       FROM group_studysessions
-       JOIN user_studygroups USING (studygroup_id)
-       JOIN studygroups USING (studygroup_id)
-       WHERE user_id = $1
-       AND start_time < NOW()
-       AND NOW() < end_time;
-       `,
-      [user_id]
-    );
-    if (!session.rows[0] && !groupSession.rows[0]) {
-      res.send("User currently has no active session");
-    } else if (session.rows[0]) {
-      const tasks = session.rows.map((task) => {
+    if(session.rows[0]){
+      const sessionTasks = await pool.query(
+        `SELECT * FROM studysession_tasks
+        WHERE checklist_id = $1;`,
+        [session.rows[0].checklist_id]
+      );
+      const tasks = sessionTasks.rows.map((task) => {
         return {
           task_id: task.task_id,
           task_name: task.task_name,
@@ -137,7 +127,21 @@ const getActiveStudySession = async (req: Request, res: Response) => {
           tasks: tasks,
         },
       });
-    } else {
+   }
+    const groupSession = await pool.query(
+      `SELECT group_name, session_name, start_time, end_time, studygroup_id, group_studysessions_id 
+       FROM group_studysessions
+       JOIN user_studygroups USING (studygroup_id)
+       JOIN studygroups USING (studygroup_id)
+       WHERE user_id = $1
+       AND start_time < NOW()
+       AND NOW() < end_time;
+       `,
+      [user_id]
+    );
+    if (!session.rows[0] && !groupSession.rows[0]) {
+      res.send("User currently has no active session");
+    } else if(groupSession.rows[0]) {
       res.json({ group_session: groupSession.rows[0] });
     }
   } catch (error) {

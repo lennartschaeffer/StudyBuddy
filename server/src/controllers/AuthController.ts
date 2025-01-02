@@ -66,6 +66,7 @@ const login = async(req: Request, res: Response) => {
             const id = result.rows[0].user_id;
             const accessToken = createAccessToken(id);
             const refreshToken = createRefreshToken(id);
+            
             //add refresh token to database
             pool.query(
               `UPDATE users SET refresh_token = $1 WHERE user_id = $2`,

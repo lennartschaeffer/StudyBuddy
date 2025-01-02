@@ -4,16 +4,24 @@ export type Task = {
   task_completed: boolean;
 };
 
-export type StudySession = {
+export type SoloStudySession = {
   session_id: number;
   session_name: string;
   start_time: string;
   end_time: string;
   user_id: number;
-  session_completed: boolean;
   checklist_id: number;
   tasks: Task[];
 };
+
+export type GroupStudySession = {
+    session_id: number;
+    session_name: string;
+    group_name: string;
+    start_time: string;
+    end_time: string;
+    studygroup_id: number;
+}
 
 export type StudySessionMapInfo = {
   user:

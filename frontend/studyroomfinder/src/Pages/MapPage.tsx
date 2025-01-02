@@ -51,7 +51,6 @@ const MapPage = () => {
 
   return (
     <div className="Main">
-      <NavBar />
       <Map studySessionMapInfo={activeSessionsInfo}/>
     </div>
   );

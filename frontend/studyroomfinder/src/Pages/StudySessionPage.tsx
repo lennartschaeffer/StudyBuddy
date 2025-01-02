@@ -21,6 +21,7 @@ import {
 import { format, parseISO } from "date-fns";
 import { BiGroup, BiUser } from "react-icons/bi";
 import CreateGroupStudySessionModal from "../Components/CreateGroupStudySessionModal";
+import { SoloStudySession } from "../Models/StudySession";
 
 const StudySessionPage = () => {
   const [showSessionModal, setShowSessionModal] = useState(false);
@@ -37,7 +38,10 @@ const StudySessionPage = () => {
       enabled: !!user?.user_id,
       refetchOnMount: true,
       onSuccess: () => {
-        console.log("Fetched active study session.", activeStudySession?.session);
+        console.log(
+          "Fetched active study session.",
+          activeStudySession?.session
+        );
       },
       onError: (error) => {
         console.error(error);
@@ -104,11 +108,10 @@ const StudySessionPage = () => {
   }, [activeStudySession, user?.user_id, completeSessionMutation]);
 
   return (
-    <div className="Main vh-100">
-      <NavBar />
+    <div className="Main h-100">
       {activeStudySession?.session ? (
-        <div className="row h-75 mt-5 w-100">
-          <div className="col-12">
+        <div className="row w-100 h-100 d-flex justify-content-center align-items-center">
+          <div className="col-12 ">
             <div className="row">
               <div className="col-12">
                 <h1 className="text-light text-center">
@@ -145,11 +148,12 @@ const StudySessionPage = () => {
                     <VscChecklist size={25} />
                   </div>
                   <div className="card-body">
-                    {/* {activeStudySession?.session_type=='solo' &&
-                    activeStudySession?.session.length > 0 ? (
+                    {activeStudySession?.session_type === "solo" ? (
                       <div className="mt-3">
                         <ListGroup>
-                          {activeStudySession.tasks.map((task, index) => (
+                          {(
+                            activeStudySession.session as SoloStudySession
+                          ).tasks.map((task, index) => (
                             <ListGroupItem
                               key={index}
                               className="d-flex justify-content-between align-items-center bg-dark"
@@ -180,7 +184,7 @@ const StudySessionPage = () => {
                       <h6 className="text-success">
                         No more tasks to complete!
                       </h6>
-                    )} */}
+                    )}
                   </div>
                 </div>
               </div>
@@ -203,7 +207,7 @@ const StudySessionPage = () => {
           </div>
         </div>
       ) : (
-        <div className="container h-75 mt-5 d-flex flex-column justify-content-center align-items-center">
+        <div className="container h-100 d-flex flex-column justify-content-center align-items-center">
           <div className="row w-100 d-flex justify-content-center">
             <div className="col-5">
               <div className="card h-100">

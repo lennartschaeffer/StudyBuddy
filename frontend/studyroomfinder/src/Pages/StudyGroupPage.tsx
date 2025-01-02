@@ -2,7 +2,7 @@ import { useState } from "react";
 import NavBar from "../Components/NavBar";
 import "./HomePage.css";
 import { useAuth } from "../Context/useAuth";
-import { GroupStudySession, StudyGroup } from "../Models/StudyGroup";
+import { StudyGroup } from "../Models/StudyGroup";
 import CreateStudyGroupModal from "../Components/CreateStudyGroupModal";
 import StudyGroupInviteModal from "../Components/StudyGroupInviteModal";
 import { useQuery } from "react-query";
@@ -16,6 +16,7 @@ import { FaUserGroup } from "react-icons/fa6";
 import { ListGroup } from "react-bootstrap";
 import { RiCalendarScheduleLine } from "react-icons/ri";
 import { useGetStudyGroups } from "../Context/useGetStudyGroups";
+import { GroupStudySession } from "../Models/StudySession";
 
 const StudyGroupPage = () => {
   const { user } = useAuth();
@@ -53,9 +54,8 @@ const StudyGroupPage = () => {
 
   return (
     <div className="Main h-100">
-      <NavBar />
-      <div className="container mt-5 ">
-        <div className="row">
+      <div className="container pt-5 ">
+        <div className="row mt-5">
           <div className="col-8">
             <div className="d-flex justify-content-around mb-5">
               <h1 className="text-light text-center m-0">

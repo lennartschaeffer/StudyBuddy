@@ -1,0 +1,6 @@
+.SideBar{
+    position: absolute;
+}
+.nav-link:hover{
+    background-color: #5796d6;
+}

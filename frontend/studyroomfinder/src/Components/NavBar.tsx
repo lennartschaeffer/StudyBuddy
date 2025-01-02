@@ -9,6 +9,7 @@ import { toast } from "react-toastify";
 import FriendRequests from "./FriendRequests";
 import { BsPersonBadge } from "react-icons/bs";
 import { useAuth } from "../Context/useAuth";
+import './NavBar.css';
 
 function NavBar() {
   const [socket, setSocket] = useState<Socket | null>(null);
@@ -69,7 +70,7 @@ function NavBar() {
   }, []);
 
   return (
-    <ul className="nav d-flex justify-content-center align-items-center pt-4">
+    <ul className="Main nav d-flex justify-content-center align-items-center pt-4">
       <li className="nav-item">
         <Link to={"/home"} className="nav-link active text-light">
           <h4>StudyBuddy</h4>
