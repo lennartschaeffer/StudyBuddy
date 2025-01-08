@@ -1,37 +1,65 @@
 import { Request, Response } from "express";
+import { supabase } from "../supabaseClient";
 
-import pool from "../db";
+type StudyGroup = {
+  studygroup_id: number;
+  group_name: string;
+};
+
+export const getStudyGroupsByUserHelper = async (user_id: string) => {
+  const { data: userStudyGroups, error } = await supabase
+    .from("user_studygroups")
+    .select(`
+      studygroups (
+        group_name,
+        studygroup_id
+      )
+    `)
+    .eq("user_id", user_id);
+
+  if (error) {
+    console.error('get study groups by user helper error' + error);
+    return [];
+  }
+
+  if (userStudyGroups.length === 0) {
+    return [];
+  }
+
+  const studyGroups = userStudyGroups.map((userStudyGroup: any) => userStudyGroup.studygroups);
+  return studyGroups;
+}
 
 const createStudyGroup = async (req: Request, res: Response) => {
   try {
     const { user_id, group_name } = req.body;
-    await pool.query("BEGIN");
-    const newGroup = await pool.query(
-      `
-                INSERT INTO studygroups (group_name, created_at) 
-                VALUES ($1, NOW()) 
-                RETURNING *;
-            `,
-      [group_name]
-    );
+    const { data: newGroup, error } = await supabase.from("studygroups").insert({
+      group_name: group_name
+    }).select();
 
-    if (newGroup.rows.length == 0) {
-      await pool.query("ROLLBACK");
+    if (error) {
       res.status(500).send("Database error");
+      console.error('create study group error' + error);
       return;
     }
-    await pool.query(
-      `
-                INSERT INTO user_studygroups (studygroup_id, user_id, user_role, joined_at) 
-                VALUES ($1, $2, 'admin', NOW());
-            `,
-      [newGroup.rows[0].studygroup_id, user_id]
-    );
+    console.log(newGroup);
+    
+    const studyGroup: StudyGroup = newGroup[0];
+    const { error: userGroupError } = await supabase.from("user_studygroups").insert({
+      studygroup_id: studyGroup.studygroup_id,
+      user_id: user_id,
+      user_role: 'admin'
+    });
 
-    await pool.query("COMMIT");
+    if (userGroupError) {
+      res.status(500).send("Database error");
+      console.error('create study group error' + userGroupError);
+      return;
+    }
+    
+
     res.send("Study group created successfully");
   } catch (error) {
-    await pool.query("ROLLBACK");
     console.error(error);
     res.status(500).send("Database error");
   }
@@ -40,13 +68,17 @@ const createStudyGroup = async (req: Request, res: Response) => {
 const joinStudyGroup = async (req: Request, res: Response) => {
   try {
     const { user_id, studygroup_id } = req.body;
-    await pool.query(
-      `
-            INSERT INTO user_studygroups (studygroup_id, user_id, user_role, joined_at)
-            VALUES ($1, $2, 'member', NOW());
-            `,
-      [studygroup_id, user_id]
-    );
+    const { error } = await supabase.from("user_studygroups").insert({
+      studygroup_id: studygroup_id,
+      user_id: user_id,
+      user_role: 'member',
+      joined_at: new Date()
+    });
+    if (error) {
+      res.status(500).send("Database error");
+      console.error('join study group error' + error);
+      return;
+    }
     res.send("User joined study group successfully");
   } catch (error) {
     console.error(error);
@@ -57,69 +89,8 @@ const joinStudyGroup = async (req: Request, res: Response) => {
 const getStudyGroupsByUser = async (req: Request, res: Response) => {
   try {
     const { user_id } = req.params;
-    //get all study groups that the user is in as well as the other members
-    const studyGroups = await pool.query(
-      `
-            WITH user_groups AS (
-                SELECT 
-                    sg.studygroup_id,
-                    sg.group_name
-                FROM 
-                    studygroups sg
-                JOIN 
-                    user_studygroups usg USING(studygroup_id)
-                WHERE 
-                    usg.user_id = $1
-            )
-            SELECT 
-                ug.studygroup_id,
-                ug.group_name,
-                u.user_id AS member_id,
-                u.first_name AS member_name
-            FROM 
-                user_groups ug
-            INNER JOIN 
-                user_studygroups USING (studygroup_id)
-            INNER JOIN 
-                users u USING(user_id)
-            ORDER BY 
-                ug.studygroup_id, ug.group_name;
-            `,
-      [user_id]
-    );
-    if (studyGroups.rows.length > 0) {
-      interface StudyGroup {
-        studygroup_id: number;
-        group_name: string;
-        members: Member[];
-      }
-
-      interface Member {
-        member_id: number;
-        member_name: string;
-      }
-      const studyGroupsById: { [key: number]: StudyGroup } =
-        studyGroups.rows.reduce(
-          (acc: { [key: number]: StudyGroup }, group: any) => {
-            if (!acc[group.studygroup_id]) {
-              acc[group.studygroup_id] = {
-                studygroup_id: group.studygroup_id,
-                group_name: group.group_name,
-                members: [],
-              };
-            }
-            acc[group.studygroup_id].members.push({
-              member_id: group.member_id,
-              member_name: group.member_name,
-            });
-            return acc;
-          },
-          {}
-        );
-      res.json(Object.values(studyGroupsById));
-    } else {
-      res.send("User is not in any study groups");
-    }
+    const studyGroups = await getStudyGroupsByUserHelper(user_id);
+    res.send(studyGroups);
   } catch (error) {
     console.error(error);
     res.status(500).send("Database error");
@@ -129,26 +100,36 @@ const getStudyGroupsByUser = async (req: Request, res: Response) => {
 const inviteToStudyGroup = async (req: Request, res: Response) => {
   try {
     const { sender_id, receiver_id, studygroup_id } = req.body;
-    //check is the receiver is already in the group
-    const check = await pool.query(
-      `
-            SELECT * FROM user_studygroups
-            WHERE user_id = $1
-            AND studygroup_id = $2;
-            `,
-      [receiver_id, studygroup_id]
-    );
-    if (check.rows.length > 0) {
+    const { data: existingUser, error: checkError } = await supabase
+      .from("user_studygroups")
+      .select("*")
+      .eq("user_id", receiver_id)
+      .eq("studygroup_id", studygroup_id);
+
+    if (checkError) {
+      res.status(500).send("Database error");
+      console.error('invite to study group check error' + checkError);
+      return;
+    }
+
+    if (existingUser.length > 0) {
       res.send("User is already in the study group");
       return;
     }
-    await pool.query(
-      `
-            INSERT INTO studygroup_invites (sender_id, receiver_id, studygroup_id, created_at)
-            VALUES ($1, $2, $3, NOW());
-            `,
-      [sender_id, receiver_id, studygroup_id]
-    );
+
+    const { error } = await supabase.from("studygroup_invites").insert({
+      sender_id: sender_id,
+      receiver_id: receiver_id,
+      studygroup_id: studygroup_id,
+      created_at: new Date()
+    });
+
+    if (error) {
+      res.status(500).send("Database error");
+      console.error('invite to study group error' + error);
+      return;
+    }
+
     res.send("Invite sent successfully");
   } catch (error) {
     console.error(error);
@@ -163,35 +144,42 @@ const respondToStudyGroupInvite = async (req: Request, res: Response) => {
       res.status(400).send("Invalid response");
       return;
     }
-    await pool.query("BEGIN");
+
     if (response === "accepted") {
-      await pool.query(
-        `
-                INSERT INTO user_studygroups (studygroup_id, user_id, user_role, joined_at)
-                VALUES ($1, $2, 'member', NOW())
-                `,
-        [studygroup_id, user_id]
-      );
-      //update invites table
-      await pool.query(
-        `
-                UPDATE studygroup_invites
-                SET status = 'accepted'
-                WHERE studygroup_invite_id = $1
-                `,
-        [studygroup_invite_id]
-      );
+      const { error: insertError } = await supabase.from("user_studygroups").insert({
+        studygroup_id: studygroup_id,
+        user_id: user_id,
+        user_role: 'member',
+        joined_at: new Date()
+      });
+
+      if (insertError) {
+        res.status(500).send("Database error");
+        console.error('respond to study group invite insert error' + insertError);
+        return;
+      }
+
+      const { error: updateError } = await supabase.from("studygroup_invites")
+        .update({ status: 'accepted' })
+        .eq("studygroup_invite_id", studygroup_invite_id);
+
+      if (updateError) {
+        res.status(500).send("Database error");
+        console.error('respond to study group invite update error' + updateError);
+        return;
+      }
     } else {
-      await pool.query(
-        `
-                UPDATE studygroup_invites
-                SET status = 'rejected'
-                WHERE studygroup_invite_id = $1
-                `,
-        [studygroup_invite_id]
-      );
+      const { error: updateError } = await supabase.from("studygroup_invites")
+        .update({ status: 'rejected' })
+        .eq("studygroup_invite_id", studygroup_invite_id);
+
+      if (updateError) {
+        res.status(500).send("Database error");
+        console.error('respond to study group invite update error' + updateError);
+        return;
+      }
     }
-    await pool.query("COMMIT");
+
     res.send("Response recorded successfully");
   } catch (error) {
     console.error(error);

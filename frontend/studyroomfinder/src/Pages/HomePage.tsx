@@ -4,13 +4,14 @@ import { useAuth } from "../Context/useAuth";
 import { Link } from "react-router-dom";
 import { useQuery } from "react-query";
 import { getRecentStudySessions } from "../endpoints/StudySessions";
-import { SoloStudySession } from "../Models/StudySession";
+import { GroupStudySession, SoloStudySession } from "../Models/StudySession";
 import { ListGroup } from "react-bootstrap";
 import { FaMapMarker, FaMapMarkerAlt, FaSearch } from "react-icons/fa";
 import { IoSchoolOutline } from "react-icons/io5";
 import { FaUser, FaUserGroup } from "react-icons/fa6";
 const HomePage = () => {
   const { user } = useAuth();
+  console.log(user);
   const { data: recentStudySessions } = useQuery(
     "recentStudySessions",
     () => getRecentStudySessions(user?.user_id!),
@@ -25,14 +26,12 @@ const HomePage = () => {
     }
   );
 
-
-
   return (
     <div className="Main vh-100 ">
       <div className="h-100 ">
         <div className="container h-100 d-flex flex-column pt-5">
           <h1 className="text-center text-light mt-5">
-            Welcome Back {user?.first_name}!
+            Welcome Back {user?.first_name}! 📚
           </h1>
           <div className="row mt-5">
             <div className="col-8">
@@ -123,76 +122,88 @@ const HomePage = () => {
                     <strong>Recent Study Sessions</strong>
                   </h3>
                   <p className="text-muted">View your recent study sessions</p>
-                  <ListGroup>
-                    {recentStudySessions?.userSessions.length > 0 ? (
-                      recentStudySessions?.userSessions.map(
-                        (session: SoloStudySession, id: number) => (
-                          <ListGroup.Item key={id}>
-                            <div className="row">
-                              <div className="col-12 d-flex justify-content-between">
-                                <b>{session.session_name}</b>
-                                <FaUser />
+                  {
+                    <ListGroup>
+                      {recentStudySessions?.userSessions.length > 0 ? (
+                        recentStudySessions?.userSessions.map(
+                          (session: SoloStudySession, id: number) => (
+                            <ListGroup.Item key={id}>
+                              <div className="row">
+                                <div className="col-12 d-flex justify-content-between">
+                                  <b>{session.session_name}</b>
+                                  <FaUser />
+                                </div>
+                                <div className="col-6">
+                                  <p
+                                    className="text-muted"
+                                    style={{ fontSize: "12px" }}
+                                  >
+                                    {new Date(session.start_time)
+                                      .toLocaleString("en-US", {
+                                        month: "numeric",
+                                        day: "numeric",
+                                        year: "numeric",
+                                        hour: "2-digit",
+                                        minute: "2-digit",
+                                        hour12: false,
+                                      })
+                                      .replace(",", " at")}
+                                  </p>
+                                </div>
                               </div>
-                              <div className="col-6">
-                                <p
-                                  className="text-muted"
-                                  style={{ fontSize: "12px" }}
-                                >
-                                  {new Date(session.start_time)
-                                    .toLocaleString("en-US", {
-                                      month: "numeric",
-                                      day: "numeric",
-                                      year: "numeric",
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                      hour12: false,
-                                    })
-                                    .replace(",", " at")}
-                                </p>
-                              </div>
-                            </div>
-                          </ListGroup.Item>
+                            </ListGroup.Item>
+                          )
                         )
-                      )
-                    ) : (
-                      <h6 className="card-text">No recent solo sessions.</h6>
-                    )}
-                    {recentStudySessions?.groupSessions.length > 0 ? (
-                      recentStudySessions?.groupSessions.map(
-                        (session: SoloStudySession, id: number) => (
-                          <ListGroup.Item key={id}>
-                            <div className="row">
-                              <div className="col-12 d-flex justify-content-between">
-                                <b>{session.session_name}</b>
-                                <FaUserGroup />
-                              </div>
-                              <div className="col-6">
-                                <p
-                                  className="text-muted"
-                                  style={{ fontSize: "12px" }}
-                                >
-                                  {new Date(session.start_time)
-                                    .toLocaleString("en-US", {
-                                      month: "numeric",
-                                      day: "numeric",
-                                      year: "numeric",
-                                      hour: "2-digit",
-                                      minute: "2-digit",
-                                      hour12: false,
-                                    })
-                                    .replace(",", " at")}
-                                </p>
-                              </div>
-                            </div>
-                          </ListGroup.Item>
+                      ) : (
+                        <h6 className="card-text">No recent solo sessions.</h6>
+                      )}
+                      {recentStudySessions &&
+                      recentStudySessions.groupSessions ? (
+                        recentStudySessions.groupSessions.map(
+                          (
+                            groupSessions: GroupStudySession[],
+                            groupId: number
+                          ) =>
+                            groupSessions.map(
+                              (session: GroupStudySession, id: number) => (
+                                <ListGroup.Item key={`${groupId}-${id}`}>
+                                  <div className="row">
+                                    <div className="col-12 d-flex justify-content-between">
+                                      <b>{session.session_name}</b>
+                                      <FaUserGroup />
+                                    </div>
+                                    <div className="col-12">
+                                      <p className="card-text m-0 text-success">
+                                        <strong>
+                                          {session.studygroups.group_name}
+                                        </strong>
+                                      </p>
+                                      <p
+                                        className="text-muted m-0"
+                                        style={{ fontSize: "12px" }}
+                                      >
+                                        {new Date(session.start_time)
+                                          .toLocaleString("en-US", {
+                                            month: "numeric",
+                                            day: "numeric",
+                                            year: "numeric",
+                                            hour: "2-digit",
+                                            minute: "2-digit",
+                                            hour12: false,
+                                          })
+                                          .replace(",", " at")}
+                                      </p>
+                                    </div>
+                                  </div>
+                                </ListGroup.Item>
+                              )
+                            )
                         )
-                      )
-                    ) : (
-                      <h6 className="card-text mt-2">
-                        No recent group sessions.
-                      </h6>
-                    )}
-                  </ListGroup>
+                      ) : (
+                        <h6 className="card-text">No upcoming sessions.</h6>
+                      )}
+                    </ListGroup>
+                  }
                 </div>
               </div>
             </div>

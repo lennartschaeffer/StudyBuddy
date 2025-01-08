@@ -1,72 +1,79 @@
 import { Request, Response } from "express";
-import pool from "../db";
 import { Server } from "socket.io";
+import { supabase } from "../supabaseClient";
+import { getStudyGroupsByUserHelper } from "./StudyGroupController";
 
 const createStudySession = async (req: Request, res: Response, io: Server) => {
   try {
     const { session_name, end_time, user_id, checklist, lat, lon } = req.body;
 
-    //start transaction
-    await pool.query("BEGIN");
+    // Start transaction
+    const { data: newChecklist, error: checklistError } = await supabase
+      .from("studysession_checklists")
+      .insert({})
+      .select("checklist_id")
+      .single();
 
-    //first create the checklist in the checklist table with the studysession id
-    const newChecklist = await pool.query(
-      "INSERT INTO studysession_checklists DEFAULT VALUES RETURNING checklist_id;"
-    );
+    if (checklistError) throw checklistError;
 
-    //for each checklist item, add it to the task table
-
+    // For each checklist item, add it to the task table
     for (const task of checklist) {
-      await pool.query(
-        "INSERT INTO studysession_tasks (checklist_id, task_name, task_completed) VALUES($1, $2, $3);",
-        [newChecklist.rows[0].checklist_id, task, false]
-      );
+      const { error: taskError } = await supabase
+        .from("studysession_tasks")
+        .insert({
+          checklist_id: newChecklist.checklist_id,
+          task_name: task,
+          task_completed: false,
+        });
+
+      if (taskError) throw taskError;
     }
 
-    //add the session to the study session table
-    const newStudySession = await pool.query(
-      `INSERT INTO studysessions (end_time, user_id, checklist_id, start_time, session_name, lat, lon) 
-      VALUES($1, $2, $3, NOW(),$4, $5, $6) RETURNING *;`,
-      [
+    // Add the session to the study session table
+    const { data: newStudySession, error: sessionError } = await supabase
+      .from("solo_studysessions")
+      .insert({
         end_time,
         user_id,
-        newChecklist.rows[0].checklist_id,
+        checklist_id: newChecklist.checklist_id,
+        start_time: new Date().toISOString(),
         session_name,
         lat,
         lon,
-      ]
-    );
+      })
+      .select("*")
+      .single();
 
-    //update checklist with the session id
-    await pool.query(
-      `UPDATE studysession_checklists SET session_id = $1 WHERE checklist_id = $2;`,
-      [newStudySession.rows[0].session_id, newChecklist.rows[0].checklist_id]
-    );
+    if (sessionError) throw sessionError;
 
-    //commit transaction
-    await pool.query("COMMIT");
+    // Update checklist with the session id
+    const { error: updateError } = await supabase
+      .from("studysession_checklists")
+      .update({ session_id: newStudySession.session_id })
+      .eq("checklist_id", newChecklist.checklist_id);
 
-    //notify friends through web socket event
-    const friends = await pool.query(
-      `SELECT friend_id FROM friends WHERE user_id = $1
-       UNION
-       SELECT user_id FROM friends WHERE friend_id = $1;`,
-      [user_id]
-    );
+    if (updateError) throw updateError;
 
-    //for each friend, emit a web socket event
-    friends.rows.forEach((friend) => {
-      io.to(friend.friend_id.toString()).emit("studySessionStarted", {
-        user_id,
-        session_name,
-        end_time,
-        session_id: newStudySession.rows[0].session_id,
-      });
-    });
+    // Notify friends through web socket event
+    // const { data: friends, error: friendsError } = await supabase
+    //   .from("friends")
+    //   .select("friend_id")
+    //   .or(`user_id.eq.${user_id},friend_id.eq.${user_id}`);
 
-    res.json(newStudySession.rows[0]);
+    // if (friendsError) throw friendsError;
+
+    // // For each friend, emit a web socket event
+    // friends.forEach((friend) => {
+    //   io.to(friend.friend_id.toString()).emit("studySessionStarted", {
+    //     user_id,
+    //     session_name,
+    //     end_time,
+    //     session_id: newStudySession.session_id,
+    //   });
+    // });
+
+    res.json(newStudySession);
   } catch (error) {
-    await pool.query("ROLLBACK");
     console.error(error);
     res.status(500).send("Database error");
   }
@@ -76,11 +83,13 @@ const completeTask = async (req: Request, res: Response) => {
   try {
     const { task_id } = req.params;
 
-    //update tasks table
-    const task = await pool.query(
-      `UPDATE studysession_tasks SET task_completed = true WHERE task_id = $1;`,
-      [task_id]
-    );
+    // Update tasks table
+    const { error: taskError } = await supabase
+      .from("studysession_tasks")
+      .update({ task_completed: true })
+      .eq("task_id", task_id);
+
+    if (taskError) throw taskError;
 
     res.status(200).send("Successfully updated task.");
   } catch (error) {
@@ -88,163 +97,210 @@ const completeTask = async (req: Request, res: Response) => {
     res.status(500).send("Database error");
   }
 };
+type SoloStudySession = {
+  session_id: number;
+  session_name: string;
+  start_time: string;
+  end_time: string;
+  user_id: number;
+  checklist_id: number;
+  tasks: Task[];
+};
+type Task = {
+  task_id: number;
+  task_name: string;
+  task_completed: boolean;
+};
 
 const getActiveStudySession = async (req: Request, res: Response) => {
   try {
     const { user_id } = req.params;
+    console.log("user_id", user_id);
 
-    //get the users active study session
-    const session = await pool.query(
-      ` SELECT * FROM studysessions
-        WHERE start_time < NOW()
-        AND end_time > NOW()
-        AND user_id = $1;
-     `,
-      [user_id]
-    );
-    if(session.rows[0]){
-      const sessionTasks = await pool.query(
-        `SELECT * FROM studysession_tasks
-        WHERE checklist_id = $1;`,
-        [session.rows[0].checklist_id]
-      );
-      const tasks = sessionTasks.rows.map((task) => {
-        return {
+    if (!user_id) {
+      throw new Error("Missing required fields");
+    }
+
+    // Get the user's active study session
+    const { data: session, error: sessionError } = await supabase
+      .from("solo_studysessions")
+      .select("*")
+      .eq("user_id", user_id)
+      .lt("start_time", new Date().toISOString())
+      .gt("end_time", new Date().toISOString());
+
+    if (sessionError) {
+      console.log("sessionError", sessionError);
+      throw sessionError;
+    }
+    console.log("session", session);
+    if (session[0]) {
+      let tasks: Task[] = [];
+      if (session[0].checklist_id) {
+        const { data: sessionTasks, error: tasksError } = await supabase
+          .from("studysession_tasks")
+          .select("*")
+          .eq("checklist_id", session[0].checklist_id);
+
+        if (tasksError) throw tasksError;
+
+        tasks = sessionTasks.map((task) => ({
           task_id: task.task_id,
           task_name: task.task_name,
           task_completed: task.task_completed,
-        };
-      });
+        }));
+      }
       res.json({
         solo_session: {
-          session_id: session.rows[0].session_id,
-          session_name: session.rows[0].session_name,
-          start_time: session.rows[0].start_time,
-          end_time: session.rows[0].end_time,
-          user_id: session.rows[0].user_id,
-          session_completed: session.rows[0].session_completed,
-          checklist_id: session.rows[0].checklist_id,
+          session_id: session[0].session_id,
+          session_name: session[0].session_name,
+          start_time: session[0].start_time,
+          end_time: session[0].end_time,
+          user_id: session[0].user_id,
+          session_completed: session[0].session_completed,
+          checklist_id: session[0].checklist_id ?? null,
           tasks: tasks,
         },
       });
-   }
-    const groupSession = await pool.query(
-      `SELECT group_name, session_name, start_time, end_time, studygroup_id, group_studysessions_id 
-       FROM group_studysessions
-       JOIN user_studygroups USING (studygroup_id)
-       JOIN studygroups USING (studygroup_id)
-       WHERE user_id = $1
-       AND start_time < NOW()
-       AND NOW() < end_time;
-       `,
-      [user_id]
+      return;
+    } 
+    
+    const groupSessions = await getStudyGroupsByUserHelper(user_id);
+
+    const currentGroupSession = await Promise.all(
+      groupSessions.map(async (studyGroup: any) => {
+        const { data: sessions, error: sessionError } = await supabase
+          .from("group_studysessions")
+          .select(`
+             start_time,
+             end_time, 
+             session_name, 
+             studygroup_id, 
+             studygroups(group_name)`)
+          .eq("studygroup_id", studyGroup.studygroup_id)
+          .lt("start_time", new Date().toISOString())
+          .gt("end_time", new Date().toISOString())
+          .limit(1);
+        if (sessionError) throw sessionError;
+        return sessions;
+      })
     );
-    if (!session.rows[0] && !groupSession.rows[0]) {
-      res.send("User currently has no active session");
-    } else if(groupSession.rows[0]) {
-      res.json({ group_session: groupSession.rows[0] });
-    }
+
+    console.log(currentGroupSession);
+
+    res.json({groupSessions: currentGroupSession.filter((session) => session.length > 0)});
+    // } else {
+    //   const { data: groupSession, error: groupSessionError } = await supabase
+    //     .from("group_studysessions")
+    //     .select(
+    //       "group_name, session_name, start_time, end_time, studygroup_id, group_studysessions_id"
+    //     )
+    //     .eq("user_id", user_id)
+    //     .lt("start_time", new Date().toISOString())
+    //     .gt("end_time", new Date().toISOString())
+    //     .single();
+
+    //   if (groupSessionError) throw groupSessionError;
   } catch (error) {
     console.error(error);
     res.status(500).send("Database error");
   }
 };
 
-const getMapStudySessionInfo = async (req: Request, res: Response) => {
-  const { user_id } = req.params;
-  try {
-    //get the users active study session
-    const userSession = await pool.query(
-      ` SELECT user_id, session_name, endtime
-        FROM studysessions
-        WHERE session_completed = false
-        AND user_id = $1;
-     `,
-      [user_id]
-    );
+// const getMapStudySessionInfo = async (req: Request, res: Response) => {
+//   const { user_id } = req.params;
+//   try {
+//     // Get the user's active study session
+//     const { data: userSession, error: userSessionError } = await supabase
+//       .from('studysessions')
+//       .select('user_id, session_name, endtime')
+//       .eq('user_id', user_id)
+//       .eq('session_completed', false)
+//       .single();
 
-    const friendSessions = await pool.query(
-      `
-        SELECT u.username, u.first_name, u.last_name, u.user_id, s.endtime, s.session_name, s.lat, s.lon
-        FROM friends f
-        JOIN users u ON (u.user_id = f.friend_id OR u.user_id = f.user_id)
-	      JOIN studysessions s ON u.user_id = s.user_id
-        WHERE (f.user_id = $1 OR f.friend_id = $1)
-	      AND s.session_completed = false
-        AND u.user_id != $1;
-        `,
-      [user_id]
-    );
+//     if (userSessionError) throw userSessionError;
 
-    let user, friends;
+//     const { data: friendSessions, error: friendSessionsError } = await supabase
+//       .from('friends')
+//       .select('u.username, u.first_name, u.last_name, u.user_id, s.endtime, s.session_name, s.lat, s.lon')
+//       .join('users u', 'u.user_id', 'friends.friend_id')
+//       .join('studysessions s', 's.user_id', 'u.user_id')
+//       .or(`friends.user_id.eq.${user_id},friends.friend_id.eq.${user_id}`)
+//       .eq('s.session_completed', false)
+//       .neq('u.user_id', user_id);
 
-    if (userSession.rows[0]) {
-      user = {
-        session_id: userSession.rows[0].session_id,
-        session_name: userSession.rows[0].session_name,
-        endtime: userSession.rows[0].endtime,
-        user_id: userSession.rows[0].user_id,
-        session_completed: userSession.rows[0].session_completed,
-        checklist_id: userSession.rows[0].checklist_id,
-      };
-    }
-    if (friendSessions.rows[0]) {
-      friends = friendSessions.rows.map((friend) => {
-        return {
-          username: friend.username,
-          first_name: friend.first_name,
-          last_name: friend.last_name,
-          user_id: friend.user_id,
-          session_id: friend.session_id,
-          session_name: friend.session_name,
-          endtime: friend.endtime,
-          lat: friend.lat,
-          lon: friend.lon,
-        };
-      });
-    }
-    res.json({
-      user: user ?? "User not currently in session",
-      friends: friends ?? "No friends currently in session",
-    });
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Database error");
-  }
-};
+//     if (friendSessionsError) throw friendSessionsError;
+
+//     let user, friends;
+
+//     if (userSession) {
+//       user = {
+//         session_id: userSession.session_id,
+//         session_name: userSession.session_name,
+//         endtime: userSession.endtime,
+//         user_id: userSession.user_id,
+//         session_completed: userSession.session_completed,
+//         checklist_id: userSession.checklist_id,
+//       };
+//     }
+//     if (friendSessions.length > 0) {
+//       friends = friendSessions.map((friend) => ({
+//         username: friend.username,
+//         first_name: friend.first_name,
+//         last_name: friend.last_name,
+//         user_id: friend.user_id,
+//         session_id: friend.session_id,
+//         session_name: friend.session_name,
+//         endtime: friend.endtime,
+//         lat: friend.lat,
+//         lon: friend.lon,
+//       }));
+//     }
+//     res.json({
+//       user: user ?? "User not currently in session",
+//       friends: friends ?? "No friends currently in session",
+//     });
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).send("Database error");
+//   }
+// };
 
 const completeActiveStudySessionEarly = async (req: Request, res: Response) => {
   try {
-      const { session_id, session_type } = req.params;
-      if(session_type === 'solo'){
-          await pool.query(
-              `UPDATE studysessions 
-              SET end_time = NOW() 
-              WHERE session_id = $1`,
-              [session_id]
-          );
-      }
-      else{
-          await pool.query(
-              `UPDATE group_studysessions 
-              SET end_time = NOW() 
-              WHERE group_studysessions_id = $1`,
-              [session_id]
-          );
-      }
-      res.status(200).send("Study session completed early.");
+    const { session_id, session_type } = req.params;
+    if (session_type === "solo") {
+      const { error: updateError } = await supabase
+        .from("solo_studysessions")
+        .update({ end_time: new Date() })
+        .eq("session_id", session_id);
+
+      if (updateError) throw updateError;
+    } else {
+      const { error: updateError } = await supabase
+        .from("group_studysessions")
+        .update({ end_time: new Date() })
+        .eq("group_studysessions_id", session_id);
+
+      if (updateError) throw updateError;
+    }
+    res.status(200).send("Study session completed early.");
   } catch (error) {
     console.error(error);
     res.status(500).send("Database error");
   }
-}
+};
+
 const completeActiveStudySession = async (req: Request, res: Response) => {
   try {
-    const { user_id } = req.params;
-    await pool.query(
-      `UPDATE studysessions SET session_completed = true WHERE user_id = $1`,
-      [user_id]
-    );
+    const { session_id } = req.params;
+    const { error: updateError } = await supabase
+      .from("solo_studysessions")
+      .update({ end_time: new Date() })
+      .eq("session_id", session_id);
+
+    if (updateError) throw updateError;
+
     res.status(200).send("Study session completed.");
   } catch (error) {
     console.error(error);
@@ -255,28 +311,42 @@ const completeActiveStudySession = async (req: Request, res: Response) => {
 const getRecentStudySessions = async (req: Request, res: Response) => {
   try {
     const { user_id } = req.params;
-    const recentSessions = await pool.query(
-      `SELECT * FROM studysessions 
-            WHERE user_id = $1
-            AND NOW() > end_time
-            ORDER BY start_time DESC
-            LIMIT 2;`,
-      [user_id]
+    const { data: recentSessions, error: recentSessionsError } = await supabase
+      .from("solo_studysessions")
+      .select("*")
+      .eq("user_id", user_id)
+      .lt("end_time", new Date().toISOString())
+      .order("start_time", { ascending: false })
+      .limit(2);
+
+    if (recentSessionsError) throw recentSessionsError;
+
+    
+    const groupSessions = await getStudyGroupsByUserHelper(user_id);
+
+    const recentGroupSessions = await Promise.all(
+      groupSessions.map(async (studyGroup: any) => {
+        const { data: sessions, error: sessionError } = await supabase
+          .from("group_studysessions")
+          .select(`
+             start_time,
+             end_time, 
+             session_name, 
+             studygroup_id, 
+             studygroups(group_name)`)
+          .eq("studygroup_id", studyGroup.studygroup_id)
+          .lt("end_time", new Date().toISOString())
+          .order("start_time", { ascending: false })
+          .limit(1);
+        if (sessionError) throw sessionError;
+        return sessions;
+      })
     );
-    const recentGroupSessions = await pool.query(
-      `SELECT group_name, session_name, start_time, end_time
-        FROM group_studysessions
-        JOIN user_studygroups USING (studygroup_id)
-        JOIN studygroups USING (studygroup_id)
-        WHERE user_id = $1
-        AND NOW() > end_time
-        ORDER BY start_time DESC
-        LIMIT 2;`,
-      [user_id]
-    );
+
+    console.log(recentGroupSessions);
     res.json({
-      userSessions: recentSessions.rows,
-      groupSessions: recentGroupSessions.rows,
+      userSessions: recentSessions,
+      groupSessions: recentGroupSessions.filter((session) => session.length > 0),
     });
   } catch (error) {
     console.error(error);
@@ -287,24 +357,35 @@ const getRecentStudySessions = async (req: Request, res: Response) => {
 const createGroupStudySession = async (req: Request, res: Response) => {
   try {
     const { studygroup_id, name, start_time, end_time } = req.body;
-    //check if studygroup is not already in session, ie start_time < NOW() < end_time
-    const check = await pool.query(
-      `SELECT * FROM group_studysessions
-          WHERE studygroup_id = $1
-          AND NOW() < end_time
-          AND start_time < NOW();`,
-      [studygroup_id]
-    );
-    if (check.rows.length > 0) {
+    // Check if studygroup is not already in session
+    const { data: check, error: checkError } = await supabase
+      .from("group_studysessions")
+      .select("*")
+      .eq("studygroup_id", studygroup_id)
+      .lt("start_time", new Date().toISOString())
+      .gt("end_time", new Date().toISOString());
+
+    if (checkError) throw checkError;
+
+    if (check.length > 0) {
       res.send("Study group is already in session");
       return;
     }
-    const newStudySession = await pool.query(
-      `INSERT INTO group_studysessions (studygroup_id, session_name, start_time, end_time)
-          VALUES ($1, $2, $3, $4) RETURNING *;`,
-      [studygroup_id, name, start_time, end_time]
-    );
-    res.json(newStudySession.rows[0]);
+
+    const { data: newStudySession, error: sessionError } = await supabase
+      .from("group_studysessions")
+      .insert({
+        studygroup_id,
+        session_name: name,
+        start_time,
+        end_time,
+      })
+      .select("*")
+      .single();
+
+    if (sessionError) throw sessionError;
+
+    res.json(newStudySession);
   } catch (error) {
     console.error(error);
     res.status(500).send("Database error");
@@ -314,30 +395,49 @@ const createGroupStudySession = async (req: Request, res: Response) => {
 const getUpcomingStudySessionsByUser = async (req: Request, res: Response) => {
   try {
     const { user_id } = req.params;
-    const upcomingSessions = await pool.query(
-      `SELECT group_name, session_name, start_time, end_time 
-       FROM group_studysessions
-       JOIN user_studygroups USING (studygroup_id)
-       JOIN studygroups USING (studygroup_id)
-       WHERE user_id = $1
-       AND start_time > NOW();`,
-      [user_id]
+    
+      
+
+    const studyGroups = await getStudyGroupsByUserHelper(user_id);
+
+   
+    //for each study group, check whether the corresponding row in group_studysessions has a start time in the future
+    const upcomingSessions = await Promise.all(
+      studyGroups.map(async (studyGroup: any) => {
+        console.log(studyGroup);
+        const { data: sessions, error: sessionError } = await supabase
+          .from("group_studysessions")
+          .select(`
+             start_time,
+             end_time, 
+             session_name, 
+             studygroup_id, 
+             studygroups(group_name)`)
+          .eq("studygroup_id", studyGroup.studygroup_id)
+          .gt("start_time", new Date().toISOString())
+          .order("start_time", { ascending: true })
+          
+        if (sessionError) throw sessionError;
+        console.log(sessions);
+        return sessions;
+      })
     );
-    res.json(upcomingSessions.rows);
+    
+    console.log(upcomingSessions);
+    res.send(upcomingSessions.filter((session) => session.length > 0));
   } catch (error) {
     console.error(error);
     res.status(500).send("Database error");
   }
 };
 
-export{
+export {
   createStudySession,
   completeTask,
   getActiveStudySession,
   completeActiveStudySession,
   getRecentStudySessions,
-  getMapStudySessionInfo,
   createGroupStudySession,
   getUpcomingStudySessionsByUser,
-  completeActiveStudySessionEarly
+  completeActiveStudySessionEarly,
 };

@@ -31,7 +31,7 @@ export const getFriendRequestsAndGroupInvites = async (userId: number) => {
       friends: res.data.friends,
     };
   } catch (error) {
-    console.error("Failed to fetch friend requests and group invites:", error);
+    //console.error("Failed to fetch friend requests and group invites:", error);
     throw error;
   }
 };

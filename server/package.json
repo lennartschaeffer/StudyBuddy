@@ -1,5 +1,6 @@
 {
   "dependencies": {
+    "@supabase/supabase-js": "^2.47.10",
     "bcrypt": "^5.1.1",
     "body-parser": "^1.20.3",
     "connect-pg-simple": "^10.0.0",
@@ -10,6 +11,7 @@
     "express-session": "^1.18.1",
     "jsonwebtoken": "^9.0.2",
     "pg": "^8.13.1",
+    "postgres": "^3.4.5",
     "socket.io": "^4.8.1"
   },
   "scripts": {
@@ -19,6 +21,7 @@
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
+    "@types/cookie-parser": "^1.4.8",
     "@types/express": "^5.0.0",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/pg": "^8.11.10",

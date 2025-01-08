@@ -1,14 +1,10 @@
 require('dotenv').config();
 import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
-import pool from "./db.js";
 import http from "http";
 import { Server } from "socket.io";
-
-//auth
-import bcrypt from "bcrypt";
-const saltRounds = 10;
-import jwt from "jsonwebtoken";
+import { supabase } from "./supabaseClient";
+import cookieParser from "cookie-parser";
 
 import bodyParser from "body-parser";
 
@@ -34,7 +30,7 @@ app.use(
   })
 );
 app.use(bodyParser.urlencoded({ extended: true }));
-
+app.use(cookieParser());
 //Routes
 
 import { StudySessionRoutes } from "./routes/StudySessionRoutes";
@@ -43,13 +39,14 @@ import { StudyGroupRoutes } from "./routes/StudyGroupRoutes";
 import { AuthRoutes } from "./routes/AuthRoutes";
 import { UserRoutes } from "./routes/UserRoutes";
 
+
 app.use("/studysessions", StudySessionRoutes(io));
 
-app.use("/users", UserRoutes())
+// app.use("/users", UserRoutes())
 
-app.use("/friends", FriendsAndInvitesRoutes(io));
+// app.use("/friends", FriendsAndInvitesRoutes(io));
 
-app.use("/studygroups", StudyGroupRoutes(io));
+ app.use("/studygroups", StudyGroupRoutes(io));
 
 app.use("/auth", AuthRoutes());
 

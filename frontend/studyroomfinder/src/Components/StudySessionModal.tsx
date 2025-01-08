@@ -35,7 +35,7 @@ const StudySessionModal: React.FC<StudySessionModalProps> = ({
     await axios
       .post(`${API_URL}/studysessions`, {
         session_name: sessionName,
-        end_time: time,
+        end_time: new Date(time).toISOString(),
         user_id: user?.user_id,
         checklist: checklist,
         lat: location?.lat,

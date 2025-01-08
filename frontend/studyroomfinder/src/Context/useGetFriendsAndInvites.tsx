@@ -22,7 +22,7 @@ export const FriendsAndInvitesProvider = ({ children }: Props) => {
     ["requestsAndInvites", user?.user_id],
     () => getFriendRequestsAndGroupInvites(user?.user_id!),
     {
-      enabled: !!user,
+      enabled: !!user?.user_id,
       onSuccess: () => {
       },
       onError: (error) => {

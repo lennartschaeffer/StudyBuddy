@@ -46,54 +46,60 @@ const ProfilePage = () => {
                 </div>
               </div>
             </div>
-            
           </div>
           <div className="row w-100 mt-3">
-              <div className="col-4">
-                <div className="card w-100 h-100">
-                  <div className="card-body">
-                    <div className="card-text w-100 d-flex justify-content-between align-items-center">
-                      <strong>Total Study Time</strong>
-                      <IoMdTime />
-                    </div>
-                    <h4>
-                      <strong>165 hours</strong>
-                    </h4>
-                    <p className="text-muted">This Month</p>
+            <div className="col-4">
+              <div className="card w-100 h-100">
+                <div className="card-body">
+                  <div className="card-text w-100 d-flex justify-content-between align-items-center">
+                    <strong>Total Study Time</strong>
+                    <IoMdTime />
                   </div>
-                </div>
-              </div>
-              <div className="col-4">
-                <div className="card w-100 h-100">
-                  <div className="card-body">
-                    <div className="card-text w-100 d-flex justify-content-between align-items-center">
-                      <strong>Study Sessions</strong>
-                      <IoBookOutline />
-                    </div>
-                    <h4>
-                      <strong>24</strong>
-                    </h4>
-                    <p className="text-muted">This Month</p>
-                  </div>
-                </div>
-              </div>
-              <div className="col-4">
-                <div className="card w-100 h-100">
-                  <div className="card-body">
-                    <div className="card-text w-100 d-flex justify-content-between align-items-center">
-                      <strong>Study Groups</strong>
-                      <FaUserGroup />
-                    </div>
-                    <h4>
-                      <strong>3</strong>
-                    </h4>
-                    <p className="text-muted">
-                      Studying is better with friends.
-                    </p>
-                  </div>
+                  <h4>
+                    <strong>165 hours</strong>
+                  </h4>
+                  <p className="text-muted">This Month</p>
                 </div>
               </div>
             </div>
+            <div className="col-4">
+              <div className="card w-100 h-100">
+                <div className="card-body">
+                  <div className="card-text w-100 d-flex justify-content-between align-items-center">
+                    <strong>Study Sessions</strong>
+                    <IoBookOutline />
+                  </div>
+                  <h4>
+                    <strong>24</strong>
+                  </h4>
+                  <p className="text-muted">This Month</p>
+                </div>
+              </div>
+            </div>
+            <div className="col-4">
+              <div className="card w-100 h-100">
+                <div className="card-body">
+                  <div className="card-text w-100 d-flex justify-content-between align-items-center">
+                    <strong>Study Groups</strong>
+                    <FaUserGroup />
+                  </div>
+                  <h4>
+                    <strong>3</strong>
+                  </h4>
+                  <p className="text-muted">Studying is better with friends.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div className="row w-100 mt-3">
+            <div className="card">
+              <div className="card-body">
+                <h2>
+                  <strong>My Study Sessions</strong>
+                </h2>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>

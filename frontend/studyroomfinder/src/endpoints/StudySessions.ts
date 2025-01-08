@@ -31,7 +31,7 @@ export const getActiveSession = async (userId: number) => {
   }
   if (res.data.group_session) {
     const session: GroupStudySession = {
-      group_name: res.data.group_session.group_name,
+      studygroups: res.data.studygroups,
       session_name: res.data.group_session.session_name,
       start_time: res.data.group_session.start_time,
       end_time: res.data.group_session.end_time,
@@ -57,10 +57,14 @@ export const completeActiveStudySession = async (userId: number) => {
 };
 
 export const getRecentStudySessions = async (userId: number) => {
+  console.log("Fetching recent study sessions");
   try {
     const res = await axios.get(
-      `${API_URL}/studysessions/recentStudySessions/${userId}`
+      `${API_URL}/studysessions/recentStudySessions/${userId}`, {
+        withCredentials: true
+      }
     );
+    console.log(res.data);
     return res.data;
   } catch (error) {
     console.error("Failed to fetch recent study sessions:", error);

@@ -1,29 +1,30 @@
 import express from "express";
+import { authMiddleware, getUser, login, logout, signUp } from "../controllers/AuthController";
 
-import {
-  deleteUser,
-  isUserAuth,
-  login,
-  logout,
-  refresh,
-  register,
-  verifyJWT,
-} from "../controllers/AuthController";
+
 
 export const AuthRoutes = () => {
   const router = express.Router();
 
-  router.get("/isUserAuth", verifyJWT, isUserAuth);
+  router.post('/signup', signUp);
 
-  router.post("/login", login);
+  router.post('/login', login);
 
-  router.post("/logout", verifyJWT, logout);
+  router.post('/logout', authMiddleware, logout);
 
-  router.post("/refresh", verifyJWT, refresh);
+  router.get('/me', authMiddleware, getUser);
 
-  router.post("/register", register);
+  // router.get("/isUserAuth", verifyJWT, isUserAuth);
 
-  router.delete("/deleteUser/:id", deleteUser);
+  // router.post("/login", login);
+
+  // router.post("/logout", verifyJWT, logout);
+
+  // router.post("/refresh", verifyJWT, refresh);
+
+  // router.post("/register", register);
+
+  // router.delete("/deleteUser/:id", deleteUser);
 
   return router;
 };

@@ -7,11 +7,11 @@ import {
   getActiveStudySession,
   completeActiveStudySession,
   getRecentStudySessions,
-  getMapStudySessionInfo,
   createGroupStudySession,
   getUpcomingStudySessionsByUser,
   completeActiveStudySessionEarly,
 } from "../controllers/StudySessionController";
+import { authMiddleware } from "../controllers/AuthController";
 
 export const StudySessionRoutes = (io: Server) => {
   const router = express.Router();
@@ -32,8 +32,8 @@ export const StudySessionRoutes = (io: Server) => {
 
   //GET
   router.get("/activeStudySession/:user_id", getActiveStudySession);
-  router.get("/recentStudySessions/:user_id", getRecentStudySessions);
-  router.get("/mapStudySessionInfo/:user_id", getMapStudySessionInfo);
+  router.get("/recentStudySessions/:user_id",authMiddleware, getRecentStudySessions);
+  //router.get("/mapStudySessionInfo/:user_id", getMapStudySessionInfo);
   router.get("/upcomingGroupSessions/:user_id", getUpcomingStudySessionsByUser);
 
   return router;

@@ -21,7 +21,7 @@ const ProtectedRoute = ({ children }: Props) => {
     }
   }, [minimizeSideBar]);
   return isLoggedIn() ? (
-    <div className="row w-100">
+    <div className="row w-100 m-0 h-100">
       <div className={`${sideBarSize} p-0`}>
         <SideBar minimize={() => setMinimizeSideBar(!minimizeSideBar)}/>
       </div>

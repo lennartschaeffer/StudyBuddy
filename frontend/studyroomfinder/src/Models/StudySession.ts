@@ -1,3 +1,5 @@
+import { StudyGroup } from "./StudyGroup";
+
 export type Task = {
   task_id: number;
   task_name: string;
@@ -17,7 +19,7 @@ export type SoloStudySession = {
 export type GroupStudySession = {
     session_id: number;
     session_name: string;
-    group_name: string;
+    studygroups: StudyGroup;
     start_time: string;
     end_time: string;
     studygroup_id: number;

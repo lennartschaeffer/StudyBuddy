@@ -7,7 +7,7 @@ export const getStudyGroups = async (userId: number) => {
     console.log(res.data);
     return res.data;
   } catch (error) {
-    console.error("Failed to fetch study groups:", error);
+    //console.error("Failed to fetch study groups:", error);
     throw error;
   }
 };
@@ -49,16 +49,21 @@ export const createGroupStudySession = async (
   start_time: string,
   end_time: string
 ) => {
-  if(!studygroup_id || !session_name || !start_time || !end_time){
+  if(!studygroup_id || !session_name || !end_time){
     throw new Error("Missing required fields");
   }
   try {
-    const res = await axios.post(`${API_URL}/studysessions/group`, {
+    const requestBody: any = {
       studygroup_id: studygroup_id,
       name: session_name,
-      start_time: start_time,
-      end_time: end_time,
-    });
+      end_time: new Date(end_time).toISOString(),
+    };
+
+    if (start_time) {
+      requestBody.start_time = new Date(start_time).toISOString();
+    }
+
+    const res = await axios.post(`${API_URL}/studysessions/group`, requestBody);
     console.log(res.data);
     return res.data;
   } catch (error) {
@@ -72,6 +77,8 @@ export const getUpcomingGroupSessions = async (userId: number) => {
     const res = await axios.get(
       `${API_URL}/studysessions/upcomingGroupSessions/${userId}`
     );
+    console.log(res.data);
+    
     return res.data;
   } catch (error) {
     console.error("Failed to fetch upcoming group sessions:", error);

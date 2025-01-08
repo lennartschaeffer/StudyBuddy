@@ -3,6 +3,7 @@ import { UserProfile } from "../Models/User";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../apiRoute";
+import { toast } from "react-toastify";
 
 type UserContextType = {
   user: UserProfile | null;
@@ -11,9 +12,10 @@ type UserContextType = {
     username: string,
     password: string,
     firstName: string,
-    lastName: string
+    lastName: string,
+    email: string
   ) => void;
-  loginUser: (username: string, password: string) => void;
+  loginUser: (email: string, password: string) => void;
   logout: () => void;
   isLoggedIn: () => boolean;
 };
@@ -23,69 +25,92 @@ type Props = { children: React.ReactNode };
 const UserContext = createContext<UserContextType>({} as UserContextType);
 
 export const UserProvider = ({ children }: Props) => {
-  
   const navigate = useNavigate();
   const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isReady, setIsReady] = useState<boolean>(false);
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const user = localStorage.getItem("user");
-    if (token && user) {
-      setToken(token);
-      setUser(JSON.parse(user));
-      axios.defaults.headers.common["x-access-token"] = token;
+  const fetchUser = async () => {
+    try {
+      const res = await axios.get(`${API_URL}/auth/me`, {
+        withCredentials: true,
+      });
+      const user: UserProfile = {
+        user_id: res.data.user_id,
+        username: res.data.username,
+        first_name: res.data.first_name,
+        last_name: res.data.last_name,
+      };
+      console.log(res.data);
+      setUser(user);
+    } catch (error) {
+      console.log("Error fetching user: ", error);
+      toast.error("Error fetching user.");
+      setUser(null);
     }
-    setIsReady(true);
+  };
+  const initAuth = async () => {
+    try {
+      await fetchUser();
+    } catch (error) {
+      console.log("User not authenticated");
+    } finally {
+      setIsReady(true); // Ensure the app renders only after the user state is checked
+    }
+  };
+
+  useEffect(() => {
+    initAuth();
   }, []);
 
   const registerUser = async (
     username: string,
     password: string,
     firstName: string,
-    lastName: string
+    lastName: string,
+    email: string
   ) => {
     await axios
-      .post(`${API_URL}/register`, {
+      .post(`${API_URL}/auth/signup`, {
         username: username,
         password: password,
         first_name: firstName,
         last_name: lastName,
+        email: email,
       })
       .then((res) => {
         console.log(res);
-        navigate("/login");
+        navigate("/verify");
+        fetchUser();
       })
       .catch((err) => {
         console.log(err);
+        toast.error("Username or email already exists.");
       });
   };
 
-  const loginUser = async (username: string, password: string) => {
+  const loginUser = async (email: string, password: string) => {
+    axios.defaults.withCredentials = true;
     await axios
       .post(`${API_URL}/auth/login`, {
-        username: username,
+        email: email,
         password: password,
       })
       .then((res) => {
         console.log(res);
-        if (res.data.auth) {
-          setToken(res.data.token);
-          localStorage.setItem("token", res.data.token);
-          const user = {
-            user_id: res.data.result.user_id,
-            username: res.data.result.username,
-            first_name: res.data.result.first_name,
-            last_name: res.data.result.last_name,
-          };
-          setUser(user!);
-          localStorage.setItem("user", JSON.stringify(user));
-          navigate("/home");
-        }
+        // fetchUser();
+        const user: UserProfile = {
+          user_id: res.data.id,
+          username: res.data.username,
+          first_name: res.data.first_name,
+          last_name: res.data.last_name,
+        };
+        setUser(user);
+        navigate("/home");
       })
       .catch((err) => {
         console.log(err);
+        toast.error("Invalid email or password.");
       });
   };
 
@@ -94,20 +119,11 @@ export const UserProvider = ({ children }: Props) => {
   };
 
   const logout = async () => {
-    const token = localStorage.getItem("token");
-    const username = JSON.parse(localStorage.getItem("user")!).username;
     await axios
-      .post(`${API_URL}/logout`, { username }, {
-        headers: {
-            "x-access-token": token
-        }
-      })
+      .post(`${API_URL}/auth/logout`, { withCredentials: true })
       .then((res) => {
         console.log(res);
-        setToken(null);
         setUser(null);
-        localStorage.removeItem("token");
-        localStorage.removeItem("user");
         navigate("/");
       })
       .catch((err) => {
@@ -115,14 +131,13 @@ export const UserProvider = ({ children }: Props) => {
       });
   };
 
-    return (
-        <UserContext.Provider
-        value={{ loginUser, user, token, logout, isLoggedIn, registerUser }}
-        >
-        {isReady ? children : null}
-        </UserContext.Provider>
-    );
+  return (
+    <UserContext.Provider
+      value={{ loginUser, user, token, logout, isLoggedIn, registerUser }}
+    >
+      {isReady ? children : null}
+    </UserContext.Provider>
+  );
 };
 
 export const useAuth = () => React.useContext(UserContext);
-    

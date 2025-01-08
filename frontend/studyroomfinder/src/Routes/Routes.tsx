@@ -10,6 +10,7 @@ import ProtectedRoute from "./ProtectedRoute";
 import StudySessionPage from "../Pages/StudySessionPage";
 import FindBuddiesPage from "../Pages/FindBuddiesPage";
 import StudyGroupPage from "../Pages/StudyGroupPage";
+import EmailVerificationPage from "../Pages/EmailVerificationPage";
 
 export const router = createBrowserRouter([
   {
@@ -19,6 +20,7 @@ export const router = createBrowserRouter([
       { path: "", element: <WelcomePage /> },
       { path: "login", element: <LoginPage /> },
       { path: "register", element: <RegistrationPage /> },
+      { path: "verify", element: <EmailVerificationPage /> },
       {
         path: "home",
         element: (

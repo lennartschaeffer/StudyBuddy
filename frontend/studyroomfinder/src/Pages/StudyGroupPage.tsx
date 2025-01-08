@@ -79,8 +79,8 @@ const StudyGroupPage = () => {
                           <b>{group.group_name}</b>
                         </h3>
                       </div>
-                      <div className="card-body d-flex flex-column">
-                        <h5 className="card-subtitle mb-2 text-muted">
+                      <div className="card-body d-flex flex-column justify-content-center">
+                        {/* <h5 className="card-subtitle mb-2 text-muted">
                           Members:
                         </h5>
                         <div className="d-flex gap-2 mb-2">
@@ -93,10 +93,10 @@ const StudyGroupPage = () => {
                               <strong>{member.member_name}</strong>
                             </span>
                           ))}
-                        </div>
+                        </div> */}
                         <div className="d-grid gap-2 d-md-block">
                           <button
-                            className="btn btn-sm btn-outline-dark col-8"
+                            className="btn btn-sm btn-outline-dark col-7"
                             onClick={() =>
                               handleShowInviteModal(
                                 group.studygroup_id,
@@ -106,8 +106,8 @@ const StudyGroupPage = () => {
                           >
                             <FaUserGroup /> Invite a Buddy
                           </button>
-                          <button className="btn btn-sm btn-outline-dark col-4">
-                            Chat
+                          <button className="btn btn-sm btn-outline-dark col-5">
+                            View Group
                           </button>
                         </div>
                         <button
@@ -140,41 +140,43 @@ const StudyGroupPage = () => {
                   View and manage your upcoming study sessions.
                 </p>
                 <ListGroup>
-                  {upcomingSessions && upcomingSessions.length > 0 ? (
+                    {upcomingSessions && upcomingSessions.length > 0 ? (
                     upcomingSessions?.map(
-                      (session: GroupStudySession, id: number) => (
-                        <ListGroup.Item key={id}>
-                          <div className="row">
-                            <div className="col-6">
-                              <b>{session.session_name}</b>
-                            </div>
-                            <div className="col-6">
-                              <p
-                                className="text-muted"
-                                style={{ fontSize: "12px" }}
-                              >
-                                {new Date(session.start_time)
-                                  .toLocaleString("en-US", {
-                                    month: "numeric",
-                                    day: "numeric",
-                                    year: "numeric",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                    hour12: false,
-                                  })
-                                  .replace(",", " at")}
-                              </p>
-                            </div>
-                            <div className="col-12">
-                              <div className="card-text text-info">
-                                <strong>{session.group_name}</strong>
-                              </div>
-                            </div>
+                      (groupSessions: GroupStudySession[], groupId: number) => (
+                      groupSessions.map((session: GroupStudySession, id: number) => (
+                        <ListGroup.Item key={`${groupId}-${id}`}>
+                        <div className="row">
+                          <div className="col-7">
+                          <b>{session.session_name}</b>
                           </div>
+                          <div className="col-5">
+                          <p
+                            className="text-muted text-center"
+                            style={{ fontSize: "12px" }}
+                          >
+                            {new Date(session.start_time)
+                            .toLocaleString("en-US", {
+                              month: "numeric",
+                              day: "numeric",
+                              year: "numeric",
+                              hour: "2-digit",
+                              minute: "2-digit",
+                              hour12: false,
+                            })
+                            .replace(",", " at")}
+                          </p>
+                          </div>
+                          <div className="col-12">
+                          <div className="card-text text-info">
+                            <strong>{session.studygroups.group_name ?? "Study Group"}</strong>
+                          </div>
+                          </div>
+                        </div>
                         </ListGroup.Item>
+                      ))
                       )
                     )
-                  ) : (
+                    ) : (
                     <h6 className="card-text">No upcoming sessions.</h6>
                   )}
                 </ListGroup>

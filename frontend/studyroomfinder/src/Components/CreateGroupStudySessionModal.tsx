@@ -30,7 +30,7 @@ const CreateGroupStudySessionModal: React.FC<
       createGroupStudySession(
         studyGroup!,
         sessionName ?? "Study Session",
-        "NOW()",
+        "",
         endTime,
       ),
     {
