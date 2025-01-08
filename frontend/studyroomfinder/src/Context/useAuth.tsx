@@ -4,10 +4,10 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../apiRoute";
 import { toast } from "react-toastify";
+import { is } from "date-fns/locale";
 
 type UserContextType = {
   user: UserProfile | null;
-  token: string | null;
   registerUser: (
     username: string,
     password: string,
@@ -26,7 +26,6 @@ const UserContext = createContext<UserContextType>({} as UserContextType);
 
 export const UserProvider = ({ children }: Props) => {
   const navigate = useNavigate();
-  const [token, setToken] = useState<string | null>(null);
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isReady, setIsReady] = useState<boolean>(false);
 
@@ -44,10 +43,10 @@ export const UserProvider = ({ children }: Props) => {
       console.log(res.data);
       setUser(user);
     } catch (error) {
-      console.log("Error fetching user: ", error);
-      toast.error("Error fetching user.");
+      console.log("No user: ", error);
       setUser(null);
     }
+    
   };
   const initAuth = async () => {
     try {
@@ -91,36 +90,31 @@ export const UserProvider = ({ children }: Props) => {
 
   const loginUser = async (email: string, password: string) => {
     axios.defaults.withCredentials = true;
-    await axios
+    try {
+      await axios
       .post(`${API_URL}/auth/login`, {
         email: email,
         password: password,
       })
-      .then((res) => {
-        console.log(res);
-        // fetchUser();
-        const user: UserProfile = {
-          user_id: res.data.id,
-          username: res.data.username,
-          first_name: res.data.first_name,
-          last_name: res.data.last_name,
-        };
-        setUser(user);
-        navigate("/home");
-      })
-      .catch((err) => {
-        console.log(err);
+      await fetchUser();
+      navigate("/home");
+    } catch (error) {
+      console.log(error);
         toast.error("Invalid email or password.");
-      });
+    }
+    
   };
 
   const isLoggedIn = () => {
+    console.log("Checking if user is logged in", user);
     return !!user;
   };
 
   const logout = async () => {
+    console.log(user);
+    
     await axios
-      .post(`${API_URL}/auth/logout`, { withCredentials: true })
+      .post(`${API_URL}/auth/logout`, {}, { withCredentials: true })
       .then((res) => {
         console.log(res);
         setUser(null);
@@ -133,7 +127,7 @@ export const UserProvider = ({ children }: Props) => {
 
   return (
     <UserContext.Provider
-      value={{ loginUser, user, token, logout, isLoggedIn, registerUser }}
+      value={{ loginUser, user, logout, isLoggedIn, registerUser }}
     >
       {isReady ? children : null}
     </UserContext.Provider>

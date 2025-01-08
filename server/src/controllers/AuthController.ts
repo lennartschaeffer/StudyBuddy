@@ -126,14 +126,12 @@ const supaBaseAuthMiddleware = async (
   next: NextFunction
 ) => {
   try {
-    
     //get token from header 
     const token = req.cookies.access_token;
     if (!token) {
       res.status(401).send("Access denied. No token found");
       return;
     }
-    
     //get user data from token
     const { data, error } = await supabase.auth.getUser(token);
     if (error) {
@@ -178,6 +176,7 @@ export const getUser = async (req: Request, res: Response) => {
 }
 
 export const logout = (req: Request, res: Response) => {
+  
   res.clearCookie("access_token", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",

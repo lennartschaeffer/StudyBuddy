@@ -44,7 +44,7 @@ app.use("/studysessions", StudySessionRoutes(io));
 
 // app.use("/users", UserRoutes())
 
-// app.use("/friends", FriendsAndInvitesRoutes(io));
+app.use("/friends", FriendsAndInvitesRoutes(io));
 
  app.use("/studygroups", StudyGroupRoutes(io));
 

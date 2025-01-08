@@ -8,38 +8,40 @@ export const getActiveSession = async (userId: number) => {
     `${API_URL}/studysessions/activeStudySession/${userId}`
   );
   console.log(res.data);
-  if (res.data.solo_session) {
+  let session: SoloStudySession | undefined;
+  let groupSessions: GroupStudySession[] = [];
+  if (res.data.soloSession) {
     let tasks: Task[] = [];
-    if (res.data.solo_session.tasks.length > 0) {
-      tasks = res.data.solo_session.tasks.map((task: Task) => ({
+    if (res.data.soloSession.tasks.length > 0) {
+      tasks = res.data.soloSession.tasks.map((task: Task) => ({
         task_id: task.task_id,
         task_name: task.task_name,
         task_completed: task.task_completed,
       }));
     }
-    const session: SoloStudySession = {
-      session_id: res.data.solo_session.session_id,
-      session_name: res.data.solo_session.session_name,
-      start_time: res.data.solo_session.start_time,
-      end_time: res.data.solo_session.end_time,
-      user_id: res.data.solo_session.user_id,
-      checklist_id: res.data.solo_session.checklist_id,
+     session = {
+      session_id: res.data.soloSession.session_id,
+      session_name: res.data.soloSession.session_name,
+      start_time: res.data.soloSession.start_time,
+      end_time: res.data.soloSession.end_time,
+      user_id: res.data.soloSession.user_id,
+      checklist_id: res.data.soloSession.checklist_id,
       tasks: tasks,
 
     };
-    return { session_type: "solo", session };
   }
-  if (res.data.group_session) {
-    const session: GroupStudySession = {
-      studygroups: res.data.studygroups,
-      session_name: res.data.group_session.session_name,
-      start_time: res.data.group_session.start_time,
-      end_time: res.data.group_session.end_time,
-      session_id: res.data.group_session.group_studysessions_id,
-      studygroup_id: res.data.group_session.studygroup_id,
-    };
-    return { session_type: "group", session };
+  if (res.data.groupSessions && res.data.groupSessions.length > 0) {
+    groupSessions = res.data.groupSessions.map(
+      (session: GroupStudySession) => ({
+        session_name: session.session_name,
+        start_time: session.start_time,
+        end_time: session.end_time,
+        session_id: session.session_id,
+        studygroup_id: session.studygroup_id,
+      })
+    );
   }
+  return { soloSession: session, groupSessions: groupSessions };
 };
 
 export const completeTask = async (task: Task) => {

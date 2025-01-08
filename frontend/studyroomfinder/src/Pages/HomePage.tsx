@@ -28,8 +28,7 @@ const HomePage = () => {
 
   return (
     <div className="Main vh-100 ">
-      <div className="h-100 ">
-        <div className="container h-100 d-flex flex-column pt-5">
+        <div className="container d-flex flex-column pt-5 overflow-hidden vh-100">
           <h1 className="text-center text-light mt-5">
             Welcome Back {user?.first_name}! 📚
           </h1>
@@ -117,13 +116,13 @@ const HomePage = () => {
             </div>
             <div className="col-4">
               <div className="card">
-                <div className="card-body">
+                <div className="card-body ">
                   <h3>
                     <strong>Recent Study Sessions</strong>
                   </h3>
                   <p className="text-muted">View your recent study sessions</p>
                   {
-                    <ListGroup>
+                    <ListGroup className="overflow-scroll">
                       {recentStudySessions?.userSessions.length > 0 ? (
                         recentStudySessions?.userSessions.map(
                           (session: SoloStudySession, id: number) => (
@@ -209,7 +208,6 @@ const HomePage = () => {
             </div>
           </div>
         </div>
-      </div>
     </div>
   );
 };

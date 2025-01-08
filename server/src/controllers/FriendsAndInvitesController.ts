@@ -1,38 +1,36 @@
 import { Request, Response } from "express";
 import pool from "../db";
 import { Server } from "socket.io";
+import { supabase } from "../supabaseClient";
 
 const sendFriendRequest = async (req: Request, res: Response, io: Server) => {
   try {
     const { sender_id, receiver_id } = req.body;
-    //check if request already exists
-    const exists = await pool.query(
-      `SELECT * FROM friendrequests 
-            WHERE (sender_id = $1 
-            AND receiver_id = $2)
-            OR (sender_id = $2
-            AND receiver_id = $1)
-            AND status = 'pending';`,
-      [sender_id, receiver_id]
-    );
-    if (exists.rows.length > 0) {
+    // Check if request already exists
+    const { data: exists, error: existsError } = await supabase
+      .from('friendrequests')
+      .select('*')
+      .or(`(sender_id.eq.${sender_id},receiver_id.eq.${receiver_id}), (sender_id.eq.${receiver_id},receiver_id.eq.${sender_id})`)
+      .eq('status', 'pending');
+
+    if (existsError) throw existsError;
+    if (exists.length > 0) {
       return res.status(400).send("Friend request already sent.");
     }
-    await pool.query(
-      `
-            INSERT INTO friendrequests (sender_id, receiver_id) VALUES($1,$2)
-            `,
-      [sender_id, receiver_id]
-    );
-    //emit web socket event
+
+    const { error: insertError } = await supabase
+      .from('friendrequests')
+      .insert([{ sender_id, receiver_id }]);
+
+    if (insertError) throw insertError;
+
+    // Emit web socket event
     io.emit("friendRequest", { sender_id, receiver_id });
 
     res.status(201).send("Friend Request Sent!");
   } catch (error) {
     console.error(error);
-    res
-      .status(500)
-      .send("Error sending friend request, please try again later.");
+    res.status(500).send("Error sending friend request, please try again later.");
   }
 };
 
@@ -43,138 +41,89 @@ const respondToFriendRequest = async (req: Request, res: Response, io: Server) =
       return res.status(400).send("Invalid response.");
     }
 
-    //start transaction
-    await pool.query("BEGIN");
+    const { data: updatedRequest, error: updateError } = await supabase
+      .from('friendrequests')
+      .update({ status: response })
+      .eq('friendrequest_id', request_id)
+      .select('*')
+      .single();
 
-    //if the request was accepted, insert a new row into the table
-    if (response === "accepted") {
-      //update the request and get the sender and receiver id
-      const updatedRequest = await pool.query(
-        `
-                    UPDATE friendrequests 
-                    SET status = 'accepted' 
-                    WHERE friendrequest_id = $1 
-                    RETURNING *
-                `,
-        [request_id]
-      );
-
-      if (updatedRequest.rows.length === 0) {
-        await pool.query("ROLLBACK");
-        return res.status(404).send("Friend request not found.");
-      }
-
-      const { sender_id, receiver_id } = updatedRequest.rows[0];
-
-      //insert the friendship into the friends table
-      await pool.query(
-        `
-                    INSERT INTO friends (user_id, friend_id) VALUES ($1,$2);
-                `,
-        [sender_id, receiver_id]
-      );
-
-      //emit web socket event
-      io.emit("friendRequestResponse", { sender_id, receiver_id, response });
-    } else {
-      //if they choose to reject it, delete the row from the friendrequest table
-      await pool.query(
-        `UPDATE friendrequests 
-         SET status = 'rejected' 
-         WHERE friendrequest_id = $1;`,
-        [request_id]
-      );
-
-      // Emit WebSocket event for friend request response
-      const rejectedRequest = await pool.query(
-        `SELECT sender_id, receiver_id FROM friendrequests WHERE friendrequest_id = $1;`,
-        [request_id]
-      );
-
-      if (rejectedRequest.rows.length > 0) {
-        const { sender_id, receiver_id } = rejectedRequest.rows[0];
-        io.emit("friendRequestResponse", { sender_id, receiver_id, response });
-      }
+    if (updateError) throw updateError;
+    if (!updatedRequest) {
+      return res.status(404).send("Friend request not found.");
     }
 
-    await pool.query("COMMIT");
+    const { sender_id, receiver_id } = updatedRequest;
+
+    if (response === "accepted") {
+      const { error: insertError } = await supabase
+        .from('friends')
+        .insert([{ user_id: sender_id, friend_id: receiver_id }]);
+
+      if (insertError) throw insertError;
+    }
+
+    io.emit("friendRequestResponse", { sender_id, receiver_id, response });
 
     res.status(200).send(`Friend request ${response}.`);
   } catch (error) {
-    await pool.query("ROLLBACK");
     console.error(error);
-    res
-      .status(500)
-      .send("Error sending friend request, please try again later.");
+    res.status(500).send("Error responding to friend request, please try again later.");
   }
 };
 
-//get all friends, friend requests, and group invites
 const getFriendsAndInvites = async (req: Request, res: Response) => {
   const { user_id } = req.params;
   try {
-    const [friendRequests, groupInvites, friends] = await Promise.all([
-      pool.query(
-        `SELECT u.username, u.first_name, u.last_name, fr.friendrequest_id
-         FROM friendrequests fr
-         JOIN users u ON u.user_id = fr.sender_id
-         WHERE fr.status = 'pending'
-         AND fr.receiver_id = $1;`,
-        [user_id]
-      ),
-      pool.query(
-        `SELECT sgi.studygroup_invite_id, sg.group_name, sg.studygroup_id, u.username, u.first_name, u.last_name
-         FROM studygroup_invites sgi
-         JOIN users u ON u.user_id = sgi.sender_id
-         JOIN studygroups sg ON sg.studygroup_id = sgi.studygroup_id
-         WHERE sgi.status = 'pending'
-         AND sgi.receiver_id = $1;`,
-        [user_id]
-      ),
-      pool.query(
-        `SELECT u.username, u.first_name, u.last_name, f.created_at, u.user_id
-         FROM friends f
-         JOIN users u ON (u.user_id = f.friend_id OR u.user_id = f.user_id)
-         WHERE (f.user_id = $1 OR f.friend_id = $1)
-         AND u.user_id != $1;`,
-        [user_id]
-      ),
-    ]);
+    
+    const {data: friends, error: friendsError} = await supabase.from("friends")
+    .select(`
+      user_id,
+      friend_id,
+      users!friends_friend_id_fkey(
+        user_id,
+        username,
+        first_name,
+        last_name
+        )
+      users!friends_user_id_fkey(
+        user_id,
+        username,
+        first_name,
+        last_name
+        )
+      `)
+      .or(`user_id.eq.${user_id},friend_id.eq.${user_id}`)
+
+    if (friendsError) throw friendsError;
 
     res.json({
-      friends: friends.rows,
-      friendRequests: friendRequests.rows,
-      groupInvites: groupInvites.rows,
+      friends,
     });
-
   } catch (error) {
     console.error(error);
-    res
-      .status(500)
-      .send("Error getting friends and invites, please try again later.");
+    res.status(500).send("Error getting friends and invites, please try again later.");
   }
 };
 
 const removeFriend = async (req: Request, res: Response) => {
   try {
     const { user_id, friend_id } = req.params;
-    await pool.query("BEGIN");
-    const result = await pool.query(
-      `DELETE FROM friends 
-            WHERE (user_id = $1 AND friend_id = $2)
-            OR (user_id = $2 AND friend_id = $1)
-            ;`,
-      [user_id, friend_id]
-    );
-    //delete the friendship request as well
-    await pool.query(
-      `DELETE FROM friendrequests
-            WHERE (sender_id = $1 AND receiver_id = $2)
-            OR (sender_id = $2 AND receiver_id = $1)
-            ;`,
-      [user_id, friend_id]
-    );
-    await pool.query("COMMIT");
+
+    const { error: deleteFriendsError } = await supabase
+      .from('friends')
+      .delete()
+      .or(`(user_id.eq.${user_id},friend_id.eq.${friend_id}), (user_id.eq.${friend_id},friend_id.eq.${user_id})`);
+
+    if (deleteFriendsError) throw deleteFriendsError;
+
+    const { error: deleteRequestsError } = await supabase
+      .from('friendrequests')
+      .delete()
+      .or(`(sender_id.eq.${user_id},receiver_id.eq.${friend_id}), (sender_id.eq.${friend_id},receiver_id.eq.${user_id})`);
+
+    if (deleteRequestsError) throw deleteRequestsError;
+
     res.json({ message: "Friend removed" });
   } catch (error) {
     console.error(error);
@@ -184,20 +133,19 @@ const removeFriend = async (req: Request, res: Response) => {
 
 const getAllFriendsInSession = async (req: Request, res: Response) => {
   try {
-    const { user_id } = req.params;
-    const friends = await pool.query(
-      `
-        SELECT u.username, u.first_name, u.last_name, u.user_id, s.endtime, s.session_name
-        FROM friends f
-        JOIN users u ON (u.user_id = f.friend_id OR u.user_id = f.user_id)
-	      JOIN studysessions s ON u.user_id = s.user_id
-        WHERE (f.user_id = $1 OR f.friend_id = $1)
-	      AND s.session_completed = false
-        AND u.user_id != $1;
-        `,
-      [user_id]
-    );
-    res.json(friends.rows);
+    // const { user_id } = req.params;
+    // const { data: friends, error } = await supabase
+    //   .from('friends')
+    //   .select('u.username, u.first_name, u.last_name, u.user_id, s.endtime, s.session_name')
+    //   .or(`user_id.eq.${user_id},friend_id.eq.${user_id}`)
+    //   .neq('u.user_id', user_id)
+    //   .join('users u', 'u.user_id', 'friends.friend_id')
+    //   .join('studysessions s', 's.user_id', 'u.user_id')
+    //   .eq('s.session_completed', false);
+
+    // if (error) throw error;
+
+    // res.json(friends);
   } catch (error) {
     console.error(error);
     res.status(500).send("Database error");

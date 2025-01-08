@@ -26,11 +26,11 @@ function App() {
     <>
       <QueryClientProvider client={queryClient}>
         <UserProvider>
-          {/* <FriendsAndInvitesProvider> */}
+          <FriendsAndInvitesProvider>
             <StudyGroupProvider>
               <Outlet />
             </StudyGroupProvider>
-          {/* </FriendsAndInvitesProvider> */}
+          </FriendsAndInvitesProvider>
         </UserProvider>
       </QueryClientProvider>
     </>
