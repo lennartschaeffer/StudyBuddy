@@ -78,7 +78,7 @@ const RegistrationPage = () => {
                 />
               </Form.Group>
               <Button variant="dark" className="w-100" onClick={handleRegister}>
-                Log In
+                Register
               </Button>
             </Form>
           </div>

@@ -141,9 +141,7 @@ const StudyGroupPage = () => {
                 </p>
                 <ListGroup>
                     {upcomingSessions && upcomingSessions.length > 0 ? (
-                    upcomingSessions?.map(
-                      (groupSessions: GroupStudySession[], groupId: number) => (
-                      groupSessions.map((session: GroupStudySession, id: number) => (
+                      upcomingSessions.map((session: GroupStudySession, id: number) => (
                         <ListGroup.Item key={`${groupId}-${id}`}>
                         <div className="row">
                           <div className="col-7">
@@ -175,8 +173,8 @@ const StudyGroupPage = () => {
                         </ListGroup.Item>
                       ))
                       )
-                    )
-                    ) : (
+                    
+                     : (
                     <h6 className="card-text">No upcoming sessions.</h6>
                   )}
                 </ListGroup>

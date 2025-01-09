@@ -31,6 +31,12 @@ app.use(
 );
 app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+(BigInt.prototype as any).toJSON = function () {
+  return this.toString();
+};
+
+
 //Routes
 
 import { StudySessionRoutes } from "./routes/StudySessionRoutes";
@@ -42,7 +48,7 @@ import { UserRoutes } from "./routes/UserRoutes";
 
 app.use("/studysessions", StudySessionRoutes(io));
 
-// app.use("/users", UserRoutes())
+app.use("/users", UserRoutes())
 
 app.use("/friends", FriendsAndInvitesRoutes(io));
 
@@ -53,12 +59,10 @@ app.use("/auth", AuthRoutes());
 //listen for socket events
 
 io.on("connection", (socket) => {
-  console.log(`User connected: ${socket.id}`)
 
   //when a user connects, join the room with their user id 
   socket.on("joinRoom", (userId) => {
     socket.join(userId.toString());
-    console.log(`User ${userId} joined room ${userId}`);
   });
 
 })

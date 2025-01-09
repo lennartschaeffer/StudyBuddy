@@ -1,63 +1,35 @@
 import { Request, Response } from "express";
 import { supabase } from "../supabaseClient";
+import prisma from "../prismaClient";
 
 type StudyGroup = {
   studygroup_id: number;
   group_name: string;
 };
 
-export const getStudyGroupsByUserHelper = async (user_id: string) => {
-  const { data: userStudyGroups, error } = await supabase
-    .from("user_studygroups")
-    .select(`
-      studygroups (
-        group_name,
-        studygroup_id
-      )
-    `)
-    .eq("user_id", user_id);
-
-  if (error) {
-    console.error('get study groups by user helper error' + error);
-    return [];
-  }
-
-  if (userStudyGroups.length === 0) {
-    return [];
-  }
-
-  const studyGroups = userStudyGroups.map((userStudyGroup: any) => userStudyGroup.studygroups);
-  return studyGroups;
-}
 
 const createStudyGroup = async (req: Request, res: Response) => {
   try {
     const { user_id, group_name } = req.body;
-    const { data: newGroup, error } = await supabase.from("studygroups").insert({
-      group_name: group_name
-    }).select();
 
-    if (error) {
-      res.status(500).send("Database error");
-      console.error('create study group error' + error);
-      return;
-    }
-    console.log(newGroup);
-    
-    const studyGroup: StudyGroup = newGroup[0];
-    const { error: userGroupError } = await supabase.from("user_studygroups").insert({
-      studygroup_id: studyGroup.studygroup_id,
-      user_id: user_id,
-      user_role: 'admin'
+    await prisma.$transaction(async (prisma) => {
+      // Step 1: Create the study group
+      const studygroup = await prisma.studygroups.create({
+        data: {
+          group_name: group_name,
+        },
+      });
+  
+      // Step 2: Use the studygroup_id from the previous query for user_studygroups
+      await prisma.user_studygroups.create({
+        data: {
+          user_id: user_id,
+          user_role: 'admin',
+          studygroup_id: studygroup.studygroup_id, // Reference the returned studygroup_id
+        },
+      });
     });
-
-    if (userGroupError) {
-      res.status(500).send("Database error");
-      console.error('create study group error' + userGroupError);
-      return;
-    }
     
-
     res.send("Study group created successfully");
   } catch (error) {
     console.error(error);
@@ -68,17 +40,14 @@ const createStudyGroup = async (req: Request, res: Response) => {
 const joinStudyGroup = async (req: Request, res: Response) => {
   try {
     const { user_id, studygroup_id } = req.body;
-    const { error } = await supabase.from("user_studygroups").insert({
-      studygroup_id: studygroup_id,
-      user_id: user_id,
-      user_role: 'member',
-      joined_at: new Date()
+    await prisma.user_studygroups.create({
+      data: {
+        studygroup_id: studygroup_id,
+        user_id: user_id,
+        user_role: 'member',
+        joined_at: new Date().toISOString()
+      }
     });
-    if (error) {
-      res.status(500).send("Database error");
-      console.error('join study group error' + error);
-      return;
-    }
     res.send("User joined study group successfully");
   } catch (error) {
     console.error(error);
@@ -89,8 +58,22 @@ const joinStudyGroup = async (req: Request, res: Response) => {
 const getStudyGroupsByUser = async (req: Request, res: Response) => {
   try {
     const { user_id } = req.params;
-    const studyGroups = await getStudyGroupsByUserHelper(user_id);
-    res.send(studyGroups);
+    const studyGroups = await prisma.user_studygroups.findMany({
+      where: {
+        user_id: Number(user_id),
+      },
+      select: {
+        studygroups: {
+          select: {
+            group_name: true,
+            studygroup_id: true,
+          },
+        },
+      },
+    });
+    //pull the group_name and studygroup_id from the studygroups object
+    res.send(studyGroups.map((studyGroup) => studyGroup.studygroups));
+    
   } catch (error) {
     console.error(error);
     res.status(500).send("Database error");
@@ -100,35 +83,38 @@ const getStudyGroupsByUser = async (req: Request, res: Response) => {
 const inviteToStudyGroup = async (req: Request, res: Response) => {
   try {
     const { sender_id, receiver_id, studygroup_id } = req.body;
-    const { data: existingUser, error: checkError } = await supabase
-      .from("user_studygroups")
-      .select("*")
-      .eq("user_id", receiver_id)
-      .eq("studygroup_id", studygroup_id);
-
-    if (checkError) {
-      res.status(500).send("Database error");
-      console.error('invite to study group check error' + checkError);
-      return;
-    }
-
-    if (existingUser.length > 0) {
+    //check if user already exists in the studygroup
+    const check = await prisma.user_studygroups.findFirst({
+      where: {
+        user_id: receiver_id,
+        studygroup_id: studygroup_id
+      }
+    })
+    if (check) {
       res.send("User is already in the study group");
       return;
     }
-
-    const { error } = await supabase.from("studygroup_invites").insert({
-      sender_id: sender_id,
-      receiver_id: receiver_id,
-      studygroup_id: studygroup_id,
-      created_at: new Date()
+    //check if the invite already exists
+    const existingInvite = await prisma.studygroup_invites.findFirst({
+      where: {
+        receiver_id: receiver_id,
+        studygroup_id: studygroup_id
+      }
     });
 
-    if (error) {
-      res.status(500).send("Database error");
-      console.error('invite to study group error' + error);
+    if(existingInvite) {
+      res.send("User has already been invited to the study group");
       return;
     }
+    //insert the invite
+    await prisma.studygroup_invites.create({
+      data: {
+        sender_id: sender_id,
+        receiver_id: receiver_id,
+        studygroup_id: studygroup_id,
+        created_at: new Date().toISOString()
+      }
+    });
 
     res.send("Invite sent successfully");
   } catch (error) {
@@ -146,40 +132,33 @@ const respondToStudyGroupInvite = async (req: Request, res: Response) => {
     }
 
     if (response === "accepted") {
-      const { error: insertError } = await supabase.from("user_studygroups").insert({
-        studygroup_id: studygroup_id,
-        user_id: user_id,
-        user_role: 'member',
-        joined_at: new Date()
+      await prisma.user_studygroups.create({
+        data: {
+          user_id: user_id,
+          studygroup_id: studygroup_id,
+          user_role: 'member',
+          joined_at: new Date().toISOString()
+        }
       });
 
-      if (insertError) {
-        res.status(500).send("Database error");
-        console.error('respond to study group invite insert error' + insertError);
-        return;
-      }
-
-      const { error: updateError } = await supabase.from("studygroup_invites")
-        .update({ status: 'accepted' })
-        .eq("studygroup_invite_id", studygroup_invite_id);
-
-      if (updateError) {
-        res.status(500).send("Database error");
-        console.error('respond to study group invite update error' + updateError);
-        return;
-      }
+      await prisma.studygroup_invites.update({
+        where: {
+          studygroup_invite_id: studygroup_invite_id
+        },
+        data: {
+          status: 'accepted'
+        }
+      });
     } else {
-      const { error: updateError } = await supabase.from("studygroup_invites")
-        .update({ status: 'rejected' })
-        .eq("studygroup_invite_id", studygroup_invite_id);
-
-      if (updateError) {
-        res.status(500).send("Database error");
-        console.error('respond to study group invite update error' + updateError);
-        return;
-      }
+     await prisma.studygroup_invites.update({
+        where: {
+          studygroup_invite_id: studygroup_invite_id
+        },
+        data: {
+          status: 'rejected'
+        }
+      });
     }
-
     res.send("Response recorded successfully");
   } catch (error) {
     console.error(error);

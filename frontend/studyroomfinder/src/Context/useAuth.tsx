@@ -40,7 +40,6 @@ export const UserProvider = ({ children }: Props) => {
         first_name: res.data.first_name,
         last_name: res.data.last_name,
       };
-      console.log(res.data);
       setUser(user);
     } catch (error) {
       console.log("No user: ", error);
@@ -80,7 +79,6 @@ export const UserProvider = ({ children }: Props) => {
       .then((res) => {
         console.log(res);
         navigate("/verify");
-        fetchUser();
       })
       .catch((err) => {
         console.log(err);
@@ -102,16 +100,14 @@ export const UserProvider = ({ children }: Props) => {
       console.log(error);
         toast.error("Invalid email or password.");
     }
-    
+
   };
 
   const isLoggedIn = () => {
-    console.log("Checking if user is logged in", user);
     return !!user;
   };
 
   const logout = async () => {
-    console.log(user);
     
     await axios
       .post(`${API_URL}/auth/logout`, {}, { withCredentials: true })

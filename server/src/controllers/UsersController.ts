@@ -1,23 +1,39 @@
 import { Request, Response } from "express";
+import prisma from "../prismaClient";
 
-import pool from "../db";
+const getPotentialFriends = async (req: Request, res: Response) => {
+    const user_id = Number(req.params.user_id);
 
-const getPotentialFriends = async(req: Request, res: Response) => {
-    const { user_id } = req.params;
     try {
-        const users = await pool.query(
-            `SELECT u.first_name, u.last_name, u.username, u.user_id
-             FROM users u
-             LEFT JOIN friends f1 ON u.user_id = f1.friend_id AND f1.user_id = $1
-             LEFT JOIN friends f2 ON u.user_id = f2.user_id AND f2.friend_id = $1
-             WHERE u.user_id != $1 AND f1.friend_id IS NULL AND f2.user_id IS NULL;`,
-            [user_id]
-          );
-        res.json(users.rows)
-    } catch (error) {
-        console.error(error)
-        res.status(500).send("database error")
-    }
-}
+        const potentialFriends = await prisma.users.findMany({
+            where: {
+              AND: [
+                { user_id: { not: user_id } }, // Exclude the current user
+                {
+                  friends_friends_user_idTousers: {
+                    none: { friend_id: user_id }, // User is not in `friends` as a friend
+                  },
+                },
+                {
+                  friends_friends_friend_idTousers: {
+                    none: { user_id: user_id }, // User is not in `friends` as a user
+                  },
+                },
+              ],
+            },
+            select: {
+              first_name: true,
+              last_name: true,
+              username: true,
+              user_id: true,
+            },
+          });
 
-export { getPotentialFriends}
+        res.json(potentialFriends);
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("database error");
+    }
+};
+
+export { getPotentialFriends };

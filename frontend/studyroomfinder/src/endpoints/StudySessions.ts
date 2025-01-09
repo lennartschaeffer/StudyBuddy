@@ -36,12 +36,11 @@ export const getActiveSession = async (userId: number) => {
         session_name: session.session_name,
         start_time: session.start_time,
         end_time: session.end_time,
-        session_id: session.session_id,
-        studygroup_id: session.studygroup_id,
+        studygroups: session.studygroups.group_name,
       })
     );
   }
-  return { soloSession: session, groupSessions: groupSessions };
+  return { soloSession: session, groupSessions: groupSessions ?? [] };
 };
 
 export const completeTask = async (task: Task) => {

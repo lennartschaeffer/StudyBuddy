@@ -1,5 +1,5 @@
 export type FriendRequest = {
-  friendrequest_id: number;
+  request_id: number;
   username: string;
   first_name: string;
   last_name: string;

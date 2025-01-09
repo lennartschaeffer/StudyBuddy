@@ -11,7 +11,6 @@ import { IoSchoolOutline } from "react-icons/io5";
 import { FaUser, FaUserGroup } from "react-icons/fa6";
 const HomePage = () => {
   const { user } = useAuth();
-  console.log(user);
   const { data: recentStudySessions } = useQuery(
     "recentStudySessions",
     () => getRecentStudySessions(user?.user_id!),
@@ -21,7 +20,6 @@ const HomePage = () => {
         console.error("Failed to fetch recent study sessions:", error);
       },
       onSuccess: (data) => {
-        console.log(recentStudySessions);
       },
     }
   );
@@ -157,15 +155,10 @@ const HomePage = () => {
                         <h6 className="card-text">No recent solo sessions.</h6>
                       )}
                       {recentStudySessions &&
-                      recentStudySessions.groupSessions ? (
+                      recentStudySessions.groupSessions.length > 0 ? (
                         recentStudySessions.groupSessions.map(
-                          (
-                            groupSessions: GroupStudySession[],
-                            groupId: number
-                          ) =>
-                            groupSessions.map(
                               (session: GroupStudySession, id: number) => (
-                                <ListGroup.Item key={`${groupId}-${id}`}>
+                                <ListGroup.Item key={id}>
                                   <div className="row">
                                     <div className="col-12 d-flex justify-content-between">
                                       <b>{session.session_name}</b>
@@ -198,9 +191,10 @@ const HomePage = () => {
                               )
                             )
                         )
-                      ) : (
+                       : (
                         <h6 className="card-text">No upcoming sessions.</h6>
-                      )}
+                      )
+                      }
                     </ListGroup>
                   }
                 </div>

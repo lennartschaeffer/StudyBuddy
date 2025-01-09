@@ -131,7 +131,7 @@ const FriendRequests: React.FC<FriendRequestProps> = ({
                       <p>
                         <b>
                           {request?.first_name} {request?.last_name} (@
-                          {request?.username})
+                          {request?.username}) 
                         </b>
                       </p>
                     </div>
@@ -140,7 +140,7 @@ const FriendRequests: React.FC<FriendRequestProps> = ({
                         className="btn btn-sm btn-outline-success btn-block"
                         onClick={() =>
                           respondToFriendRequestMutation.mutate({
-                            request_id: request.friendrequest_id,
+                            request_id: request.request_id,
                             response: "accepted",
                           })
                         }
@@ -151,7 +151,7 @@ const FriendRequests: React.FC<FriendRequestProps> = ({
                         className="btn btn-sm btn-outline-danger btn-block m-0"
                         onClick={() =>
                           respondToFriendRequestMutation.mutate({
-                            request_id: request.friendrequest_id,
+                            request_id: request.request_id,
                             response: "rejected",
                           })
                         }

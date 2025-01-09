@@ -1,0 +1,118 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model friendrequests {
+  friendrequest_id                        BigInt   @id @default(autoincrement())
+  created_at                              DateTime @default(now()) @db.Timestamptz(6)
+  sender_id                               BigInt
+  receiver_id                             BigInt
+  status                                  String?  @default("pending")
+  users_friendrequests_receiver_idTousers users    @relation("friendrequests_receiver_idTousers", fields: [receiver_id], references: [user_id], onDelete: Cascade)
+  users_friendrequests_sender_idTousers   users    @relation("friendrequests_sender_idTousers", fields: [sender_id], references: [user_id], onDelete: Cascade)
+}
+
+model friends {
+  friendship_id                  BigInt   @id @default(autoincrement())
+  created_at                     DateTime @default(now()) @db.Timestamptz(6)
+  user_id                        BigInt
+  friend_id                      BigInt
+  users_friends_friend_idTousers users    @relation("friends_friend_idTousers", fields: [friend_id], references: [user_id], onDelete: Cascade)
+  users_friends_user_idTousers   users    @relation("friends_user_idTousers", fields: [user_id], references: [user_id], onDelete: Cascade)
+}
+
+model group_studysessions {
+  group_studysessions_id BigInt      @id @default(autoincrement())
+  start_time             DateTime?   @default(now()) @db.Timestamptz(6)
+  end_time               DateTime?   @db.Timestamptz(6)
+  session_name           String
+  studygroup_id          BigInt
+  studygroups            studygroups @relation(fields: [studygroup_id], references: [studygroup_id], onDelete: Cascade)
+}
+
+model solo_studysessions {
+  session_id                                                                       BigInt                    @id @default(autoincrement())
+  start_time                                                                       DateTime                  @default(now()) @db.Timestamptz(6)
+  end_time                                                                         DateTime                  @db.Timestamptz(6)
+  session_name                                                                     String?                   @default("Study Session")
+  lat                                                                              Float?
+  lon                                                                              Float?
+  user_id                                                                          BigInt
+  checklist_id                                                                     BigInt?
+  studysession_checklists_solo_studysessions_checklist_idTostudysession_checklists studysession_checklists?  @relation("solo_studysessions_checklist_idTostudysession_checklists", fields: [checklist_id], references: [checklist_id])
+  users                                                                            users                     @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+  studysession_checklists_studysession_checklists_session_idTosolo_studysessions   studysession_checklists[] @relation("studysession_checklists_session_idTosolo_studysessions")
+}
+
+model studygroup_invites {
+  studygroup_invite_id                        BigInt      @id @default(autoincrement())
+  created_at                                  DateTime    @default(now()) @db.Timestamptz(6)
+  studygroup_id                               BigInt
+  sender_id                                   BigInt
+  receiver_id                                 BigInt
+  status                                      String      @default("pending")
+  users_studygroup_invites_receiver_idTousers users       @relation("studygroup_invites_receiver_idTousers", fields: [receiver_id], references: [user_id], onDelete: Cascade)
+  users_studygroup_invites_sender_idTousers   users       @relation("studygroup_invites_sender_idTousers", fields: [sender_id], references: [user_id], onDelete: Cascade)
+  studygroups                                 studygroups @relation(fields: [studygroup_id], references: [studygroup_id], onDelete: Cascade)
+}
+
+model studygroups {
+  studygroup_id       BigInt                @id @default(autoincrement())
+  created_at          DateTime              @default(now()) @db.Timestamptz(6)
+  group_name          String                @default("")
+  group_studysessions group_studysessions[]
+  studygroup_invites  studygroup_invites[]
+  user_studygroups    user_studygroups[]
+}
+
+model studysession_checklists {
+  checklist_id                                                                BigInt               @id @default(autoincrement())
+  session_id                                                                  BigInt?
+  solo_studysessions_solo_studysessions_checklist_idTostudysession_checklists solo_studysessions[] @relation("solo_studysessions_checklist_idTostudysession_checklists")
+  solo_studysessions_studysession_checklists_session_idTosolo_studysessions   solo_studysessions?  @relation("studysession_checklists_session_idTosolo_studysessions", fields: [session_id], references: [session_id], onDelete: Cascade)
+  studysession_tasks                                                          studysession_tasks[]
+}
+
+model studysession_tasks {
+  task_id                 BigInt                  @id @default(autoincrement())
+  task_name               String
+  task_completed          Boolean?                @default(false)
+  checklist_id            BigInt
+  studysession_checklists studysession_checklists @relation(fields: [checklist_id], references: [checklist_id], onDelete: Cascade)
+}
+
+model user_studygroups {
+  user_studygroup_id BigInt      @id @default(autoincrement())
+  user_role          String      @default("member")
+  joined_at          DateTime    @default(now()) @db.Timestamp(6)
+  studygroup_id      BigInt
+  user_id            BigInt
+  studygroups        studygroups @relation(fields: [studygroup_id], references: [studygroup_id], onDelete: Cascade)
+  users              users       @relation(fields: [user_id], references: [user_id], onDelete: Cascade)
+}
+
+model users {
+  user_id                                                  BigInt               @id @default(autoincrement())
+  created_at                                               DateTime             @default(now()) @db.Timestamptz(6)
+  username                                                 String               @unique @db.VarChar
+  first_name                                               String
+  last_name                                                String
+  university                                               String?              @default("Not Enrolled")
+  degree                                                   String?              @default("None")
+  email                                                    String
+  auth_id                                                  String               @unique @db.Uuid
+  friendrequests_friendrequests_receiver_idTousers         friendrequests[]     @relation("friendrequests_receiver_idTousers")
+  friendrequests_friendrequests_sender_idTousers           friendrequests[]     @relation("friendrequests_sender_idTousers")
+  friends_friends_friend_idTousers                         friends[]            @relation("friends_friend_idTousers")
+  friends_friends_user_idTousers                           friends[]            @relation("friends_user_idTousers")
+  solo_studysessions                                       solo_studysessions[]
+  studygroup_invites_studygroup_invites_receiver_idTousers studygroup_invites[] @relation("studygroup_invites_receiver_idTousers")
+  studygroup_invites_studygroup_invites_sender_idTousers   studygroup_invites[] @relation("studygroup_invites_sender_idTousers")
+  user_studygroups                                         user_studygroups[]
+}

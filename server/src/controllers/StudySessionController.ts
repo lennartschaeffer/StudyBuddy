@@ -1,68 +1,51 @@
 import { Request, Response } from "express";
 import { Server } from "socket.io";
 import { supabase } from "../supabaseClient";
-import { getStudyGroupsByUserHelper } from "./StudyGroupController";
 import { log } from "console";
+import prisma from "../prismaClient";
 
-const createChecklistAndTasks = async (checklist: string[]) => {
-  const { data: newChecklist, error: checklistError } = await supabase
-    .from("studysession_checklists")
-    .insert({})
-    .select("checklist_id")
-    .single();
-
-  if (checklistError) throw checklistError;
-
-  const checklist_id = newChecklist.checklist_id;
-
-  for (const task of checklist) {
-    const { error: taskError } = await supabase
-      .from("studysession_tasks")
-      .insert({
-        checklist_id: newChecklist.checklist_id,
-        task_name: task,
-        task_completed: false,
-      });
-
-    if (taskError) throw taskError;
-  }
-
-  return checklist_id;
-};
 
 const createStudySession = async (req: Request, res: Response, io: Server) => {
   try {
     const { session_name, end_time, user_id, checklist, lat, lon } = req.body;
-    let checklist_id = null;
+    let checklist_id: any = null;
+    //start transaction
+    await prisma.$transaction(async (prisma) => {
 
-    if (checklist.length > 0) {
-      checklist_id = await createChecklistAndTasks(checklist);
+      // Create the checklist and tasks
+      if (checklist.length > 0) {
+        const newChecklist = await prisma.studysession_checklists.create({
+          data: {},
+        });
+        checklist_id = newChecklist.checklist_id;
+
+        for (const task of checklist) {
+          await prisma.studysession_tasks.create({
+            data: {
+              checklist_id: newChecklist.checklist_id,
+              task_name: task,
+              task_completed: false,
+            },
+          });
+        }
+      }
+
+      // Create the study session
+      await prisma.solo_studysessions.create({
+        data: {
+          end_time: new Date(end_time).toISOString(),
+          user_id: user_id,
+          checklist_id: checklist_id,
+          start_time: new Date().toISOString(),
+          session_name: session_name,
+          lat: lat,
+          lon: lon,
+        },
+      });
     }
+    );
 
-    const { data: newStudySession, error: sessionError } = await supabase
-      .from("solo_studysessions")
-      .insert({
-        end_time,
-        user_id,
-        checklist_id: checklist_id,
-        start_time: new Date().toISOString(),
-        session_name,
-        lat,
-        lon,
-      })
-      .select("*")
-      .single();
-
-    if (sessionError) throw sessionError;
-
-    const { error: updateError } = await supabase
-      .from("studysession_checklists")
-      .update({ session_id: newStudySession.session_id })
-      .eq("checklist_id", checklist_id);
-
-    if (updateError) throw updateError;
-
-    res.json(newStudySession);
+    res.status(200).send("Study session created successfully");
   } catch (error) {
     console.error(error);
     res.status(500).send("Database error");
@@ -72,29 +55,19 @@ const createStudySession = async (req: Request, res: Response, io: Server) => {
 const completeTask = async (req: Request, res: Response) => {
   try {
     const { task_id } = req.params;
-
-    // Update tasks table
-    const { error: taskError } = await supabase
-      .from("studysession_tasks")
-      .update({ task_completed: true })
-      .eq("task_id", task_id);
-
-    if (taskError) throw taskError;
-
+    await prisma.studysession_tasks.update({
+      where: {
+        task_id: Number(task_id),
+      },
+      data: {
+        task_completed: true,
+      },
+    });
     res.status(200).send("Successfully updated task.");
   } catch (error) {
     console.error(error);
     res.status(500).send("Database error");
   }
-};
-type SoloStudySession = {
-  session_id: number;
-  session_name: string;
-  start_time: string;
-  end_time: string;
-  user_id: number;
-  checklist_id: number;
-  tasks: Task[];
 };
 type Task = {
   task_id: number;
@@ -124,27 +97,23 @@ const getActiveStudySession = async (req: Request, res: Response) => {
 };
 
 const getSoloStudySession = async (user_id: string) => {
-  const { data: session, error: sessionError } = await supabase
-    .from("solo_studysessions")
-    .select("*")
-    .eq("user_id", user_id)
-    .lt("start_time", new Date().toISOString())
-    .gt("end_time", new Date().toISOString());
 
-  if (sessionError) {
-    console.log("sessionError", sessionError);
-    throw sessionError;
-  }
-
-  if (session[0]) {
-    let tasks: Task[] = [];
-    if (session[0].checklist_id) {
-      const { data: sessionTasks, error: tasksError } = await supabase
-        .from("studysession_tasks")
-        .select("*")
-        .eq("checklist_id", session[0].checklist_id);
-
-      if (tasksError) throw tasksError;
+  const soloSession = await prisma.solo_studysessions.findFirst({
+    where: {
+      user_id: Number(user_id), // Filter by user_id
+      end_time: { gt: new Date().toISOString() }, // Ensure the session has not ended
+      start_time: { lt: new Date().toISOString() }, // Ensure the session has started
+    },
+  });
+  //if there is a solo session, get the tasks
+  if (soloSession) {
+    let tasks: any = [];
+    if (soloSession.checklist_id) {
+      const sessionTasks = await prisma.studysession_tasks.findMany({
+        where: {
+          checklist_id: soloSession.checklist_id,
+        },
+      });
 
       tasks = sessionTasks.map((task) => ({
         task_id: task.task_id,
@@ -153,13 +122,12 @@ const getSoloStudySession = async (user_id: string) => {
       }));
     }
     return {
-      session_id: session[0].session_id,
-      session_name: session[0].session_name,
-      start_time: session[0].start_time,
-      end_time: session[0].end_time,
-      user_id: session[0].user_id,
-      session_completed: session[0].session_completed,
-      checklist_id: session[0].checklist_id ?? null,
+      session_id: soloSession.session_id,
+      session_name: soloSession.session_name,
+      start_time: soloSession.start_time,
+      end_time: soloSession.end_time,
+      user_id: soloSession.user_id,
+      checklist_id: soloSession.checklist_id ?? null,
       tasks: tasks,
     };
   }
@@ -167,30 +135,35 @@ const getSoloStudySession = async (user_id: string) => {
 };
 
 const getGroupStudySessions = async (user_id: string) => {
-  const groupSessions = await getStudyGroupsByUserHelper(user_id);
+  
+    const groupSessions = await prisma.group_studysessions.findMany({
+      where: {
+        studygroups: {
+          user_studygroups: {
+            some: { user_id: Number(user_id)}, // Filter for study groups where the user is a member
+          },
+        },
+        end_time: { gt: new Date().toISOString() }, //make sure the session has not ended
+        start_time: {lt : new Date().toISOString() }, //make sure the session has started
+      },
+      orderBy: {
+        start_time: 'desc', // Order by start_time in descending order
+      },
+      select: {
+        studygroups: {
+          select: {
+            group_name: true,
+          },
+        },
+        session_name: true,
+        start_time: true,
+        end_time: true,
+      },
+    });
+  
+   
 
-  const currentGroupSession = await Promise.all(
-    groupSessions.map(async (studyGroup: any) => {
-      const { data: sessions, error: sessionError } = await supabase
-        .from("group_studysessions")
-        .select(
-          `
-           start_time,
-           end_time, 
-           session_name, 
-           studygroup_id, 
-           studygroups(group_name)`
-        )
-        .eq("studygroup_id", studyGroup.studygroup_id)
-        .lt("start_time", new Date().toISOString())
-        .gt("end_time", new Date().toISOString())
-        .limit(1);
-      if (sessionError) throw sessionError;
-      return sessions;
-    })
-  );
-
-  return currentGroupSession.flat();
+  return groupSessions;
 };
 
 // const getMapStudySessionInfo = async (req: Request, res: Response) => {
@@ -252,23 +225,31 @@ const getGroupStudySessions = async (user_id: string) => {
 //   }
 // };
 
-const completeActiveStudySessionEarly = async (req: Request, res: Response) => {
+const completeActiveStudySession = async (req: Request, res: Response) => {
   try {
     const { session_id, session_type } = req.params;
     if (session_type === "solo") {
-      const { error: updateError } = await supabase
-        .from("solo_studysessions")
-        .update({ end_time: new Date() })
-        .eq("session_id", session_id);
-
-      if (updateError) throw updateError;
-    } else {
-      const { error: updateError } = await supabase
-        .from("group_studysessions")
-        .update({ end_time: new Date() })
-        .eq("group_studysessions_id", session_id);
-
-      if (updateError) throw updateError;
+      await prisma.solo_studysessions.update({
+        where: {
+          session_id: Number(session_id),
+        },
+        data: {
+          end_time: new Date().toISOString(),
+        },
+      });
+    } else if(session_type === "group") {
+      await prisma.group_studysessions.update({
+        where: {
+          group_studysessions_id: Number(session_id),
+        },
+        data: {
+          end_time: new Date().toISOString(),
+        },
+      });
+    }
+    else{
+       res.status(400).send("Invalid session type"); 
+       return;
     }
     res.status(200).send("Study session completed early.");
   } catch (error) {
@@ -277,62 +258,51 @@ const completeActiveStudySessionEarly = async (req: Request, res: Response) => {
   }
 };
 
-const completeActiveStudySession = async (req: Request, res: Response) => {
-  try {
-    const { session_id } = req.params;
-    const { error: updateError } = await supabase
-      .from("solo_studysessions")
-      .update({ end_time: new Date().toISOString() })
-      .eq("session_id", session_id);
-
-    if (updateError) throw updateError;
-
-    res.status(200).send("Study session completed.");
-  } catch (error) {
-    console.error(error);
-    res.status(500).send("Database error");
-  }
-};
 
 const getRecentSoloStudySessions = async (user_id: string) => {
-  const { data: recentSessions, error: recentSessionsError } = await supabase
-    .from("solo_studysessions")
-    .select("*")
-    .eq("user_id", user_id)
-    .lt("end_time", new Date().toISOString())
-    .order("start_time", { ascending: false })
-    .limit(2);
-
-  if (recentSessionsError) throw recentSessionsError;
+  
+  const recentSessions = await prisma.solo_studysessions.findMany({
+    where: {
+      user_id: Number(user_id), // Filter by user_id
+      end_time: { lt: new Date().toISOString() }, // Ensure the session has ended
+    },
+    orderBy: {
+      start_time: 'desc', // Order by start_time in descending order
+    },
+    take: 2, // Limit to 2 results
+  });
 
   return recentSessions;
 };
 
 const getRecentGroupStudySessions = async (user_id: string) => {
-  const groupSessions = await getStudyGroupsByUserHelper(user_id);
+  
+  const recentGroupSessions = await prisma.group_studysessions.findMany({
+    where: {
+      studygroups: {
+        user_studygroups: {
+          some: { user_id: Number(user_id)}, 
+        },
+      },
+      end_time: { lt: new Date().toISOString() }, 
+    },
+    orderBy: {
+      start_time: 'desc', 
+    },
+    take: 2, 
+    select: {
+      studygroups: {
+        select: {
+          group_name: true,
+        },
+      },
+      session_name: true,
+      start_time: true,
+      end_time: true,
+    },
+  });
 
-  const recentGroupSessions = await Promise.all(
-    groupSessions.map(async (studyGroup: any) => {
-      const { data: sessions, error: sessionError } = await supabase
-        .from("group_studysessions")
-        .select(
-          `
-           start_time,
-           end_time, 
-           session_name, 
-           studygroup_id, 
-           studygroups(group_name)`
-        )
-        .eq("studygroup_id", studyGroup.studygroup_id)
-        .lt("end_time", new Date().toISOString())
-        .order("start_time", { ascending: false })
-        .limit(1);
-      if (sessionError) throw sessionError;
-      return sessions;
-    })
-  );
-
-  return recentGroupSessions.filter((session) => session.length > 0);
+  return recentGroupSessions;
 };
 
 const getRecentStudySessions = async (req: Request, res: Response) => {
@@ -343,8 +313,8 @@ const getRecentStudySessions = async (req: Request, res: Response) => {
     const recentGroupSessions = await getRecentGroupStudySessions(user_id);
 
     res.json({
-      userSessions: recentSoloSessions,
-      groupSessions: recentGroupSessions,
+      userSessions: recentSoloSessions ?? [],
+      groupSessions: recentGroupSessions ?? [],
     });
   } catch (error) {
     console.error(error);
@@ -355,35 +325,16 @@ const getRecentStudySessions = async (req: Request, res: Response) => {
 const createGroupStudySession = async (req: Request, res: Response) => {
   try {
     const { studygroup_id, name, start_time, end_time } = req.body;
-    // Check if studygroup is not already in session
-    const { data: check, error: checkError } = await supabase
-      .from("group_studysessions")
-      .select("*")
-      .eq("studygroup_id", studygroup_id)
-      .lt("start_time", new Date().toISOString())
-      .gt("end_time", new Date().toISOString());
 
-    if (checkError) throw checkError;
-
-    if (check.length > 0) {
-      res.send("Study group is already in session");
-      return;
-    }
-
-    const { data: newStudySession, error: sessionError } = await supabase
-      .from("group_studysessions")
-      .insert({
+    await prisma.group_studysessions.create({
+      data: {
         studygroup_id,
         session_name: name,
         start_time,
         end_time,
-      })
-      .select("*")
-      .single();
-
-    if (sessionError) throw sessionError;
-
-    res.json(newStudySession);
+      },
+    });
+    res.status(200).send("Group study session created successfully");
   } catch (error) {
     console.error(error);
     res.status(500).send("Database error");
@@ -394,34 +345,31 @@ const getUpcomingStudySessionsByUser = async (req: Request, res: Response) => {
   try {
     const { user_id } = req.params;
 
-    const studyGroups = await getStudyGroupsByUserHelper(user_id);
-
-    //for each study group, check whether the corresponding row in group_studysessions has a start time in the future
-    const upcomingSessions = await Promise.all(
-      studyGroups.map(async (studyGroup: any) => {
-        console.log(studyGroup);
-        const { data: sessions, error: sessionError } = await supabase
-          .from("group_studysessions")
-          .select(
-            `
-             start_time,
-             end_time, 
-             session_name, 
-             studygroup_id, 
-             studygroups(group_name)`
-          )
-          .eq("studygroup_id", studyGroup.studygroup_id)
-          .gt("start_time", new Date().toISOString())
-          .order("start_time", { ascending: true });
-
-        if (sessionError) throw sessionError;
-        console.log(sessions);
-        return sessions;
-      })
-    );
-
-    console.log(upcomingSessions);
-    res.send(upcomingSessions.filter((session) => session.length > 0));
+    const upcomingGroupSessions = await prisma.group_studysessions.findMany({
+      where: {
+        studygroups: {
+          user_studygroups: {
+            some: { user_id: Number(user_id) }, 
+          },
+        },
+        start_time: { gt: new Date().toISOString() }, 
+      },
+      orderBy: {
+        start_time: 'asc', 
+      },
+      select: {
+        studygroups: {
+          select: {
+            group_name: true,
+          },
+        },
+        session_name: true,
+        start_time: true,
+        end_time: true,
+      },
+    });
+   
+    res.send(upcomingGroupSessions);
   } catch (error) {
     console.error(error);
     res.status(500).send("Database error");
@@ -436,5 +384,4 @@ export {
   getRecentStudySessions,
   createGroupStudySession,
   getUpcomingStudySessionsByUser,
-  completeActiveStudySessionEarly,
 };

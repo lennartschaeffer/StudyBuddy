@@ -9,7 +9,6 @@ import {
   getRecentStudySessions,
   createGroupStudySession,
   getUpcomingStudySessionsByUser,
-  completeActiveStudySessionEarly,
 } from "../controllers/StudySessionController";
 import { authMiddleware } from "../controllers/AuthController";
 
@@ -20,10 +19,6 @@ export const StudySessionRoutes = (io: Server) => {
   router.post("/", async(req: Request, res: Response) => await createStudySession(req, res, io));
   router.post("/group", createGroupStudySession);
 
-  router.put(
-    "/completeActiveStudySessionEarly/:session_id/:session_type",
-    completeActiveStudySessionEarly
-  );
   router.put("/completeTask/:task_id", completeTask);
   router.put(
     "/completeActiveStudySession/:user_id",

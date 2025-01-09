@@ -1,34 +1,48 @@
 import axios from "axios";
 import { API_URL } from "../apiRoute";
 import { FriendRequest, GroupInvite } from "../Models/RequestsAndInvites";
+import { Buddy } from "../Models/StudyBuddy";
+import { fr } from "date-fns/locale";
 
 export const getFriendRequestsAndGroupInvites = async (userId: number) => {
   try {
     const res = await axios.get(`${API_URL}/friends/${userId}`);
+    console.log(res.data);
+    
     const requests: FriendRequest[] = res.data.friendRequests.map(
       (request: FriendRequest) => ({
         first_name: request.first_name,
         last_name: request.last_name,
         username: request.username,
-        friendrequest_id: request.friendrequest_id,
+        request_id: request.request_id,
+      })
+    );
+    
+    const friends : Buddy[] = res.data.friends.map(
+      (friend: Buddy) => ({
+        first_name: friend.first_name,
+        last_name: friend.last_name,
+        username: friend.username,
+        user_id: friend.user_id,
       })
     );
 
-    const invites: GroupInvite[] = res.data.groupInvites.map(
-      (invite: GroupInvite) => ({
-        name: invite.name,
-        studygroup_id: invite.studygroup_id,
-        studygroup_invite_id: invite.studygroup_invite_id,
-        first_name: invite.first_name,
-        last_name: invite.last_name,
-        username: invite.username,
-      })
-    );
-
+    // const invites: GroupInvite[] = res.data.groupInvites.map(
+    //   (invite: GroupInvite) => ({
+    //     name: invite.name,
+    //     studygroup_id: invite.studygroup_id,
+    //     studygroup_invite_id: invite.studygroup_invite_id,
+    //     first_name: invite.first_name,
+    //     last_name: invite.last_name,
+    //     username: invite.username,
+    //   })
+    // );
+    console.log(requests);
+    
     return {
       friendRequests: requests,
-      groupInvites: invites,
-      friends: res.data.friends,
+      groupInvites: [],
+      friends: friends,
     };
   } catch (error) {
     //console.error("Failed to fetch friend requests and group invites:", error);
