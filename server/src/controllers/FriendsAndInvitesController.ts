@@ -106,9 +106,11 @@ const getFriendsAndInvites = async (req: Request, res: Response) => {
   try {
     const friends = await getFriendsByUser(user_id);
     const friendRequests = await getFriendRequestsByUser(user_id);
+    const groupInvites = await getGroupInvitesByUser(user_id);
     res.json({
       friends: friends,
-      friendRequests: friendRequests
+      friendRequests: friendRequests,
+      groupInvites: groupInvites,
     });
   } catch (error) {
     console.error(error);
@@ -189,6 +191,50 @@ const getFriendRequestsByUser = async (user_id: string) => {
   }
 }
 
+const getGroupInvitesByUser = async (user_id: string) => {
+  try {
+    const invites = await prisma.studygroup_invites.findMany({
+      where: {
+        receiver_id: Number(user_id),
+        status: "pending", //where current user is recevier and status is pending
+      },
+      select: {
+        studygroup_invite_id: true,
+        studygroup_id: true,
+        sender_id: true,
+        studygroups: {
+          select: {
+            group_name: true,
+            studygroup_id: true,
+          },
+        }, //get studygroup name
+        users_studygroup_invites_sender_idTousers: {
+          select: {
+            username: true,
+            first_name: true,
+            last_name: true,
+          },
+        },
+      },
+    });
+    //map the data to a more readable format
+    const mappedInvites = invites.map((invite) => {
+      return {
+        invite_id: invite.studygroup_invite_id,
+        sender_id: invite.sender_id,
+        studygroup_id: invite.studygroup_id,
+        group_name: invite.studygroups.group_name,
+        username: invite.users_studygroup_invites_sender_idTousers.username,
+        first_name: invite.users_studygroup_invites_sender_idTousers.first_name,
+        last_name: invite.users_studygroup_invites_sender_idTousers.last_name,
+      };
+    });
+    return mappedInvites;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+}
 const removeFriend = async (req: Request, res: Response) => {
   try {
     const { user_id, friend_id } = req.params;

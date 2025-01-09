@@ -27,21 +27,20 @@ export const getFriendRequestsAndGroupInvites = async (userId: number) => {
       })
     );
 
-    // const invites: GroupInvite[] = res.data.groupInvites.map(
-    //   (invite: GroupInvite) => ({
-    //     name: invite.name,
-    //     studygroup_id: invite.studygroup_id,
-    //     studygroup_invite_id: invite.studygroup_invite_id,
-    //     first_name: invite.first_name,
-    //     last_name: invite.last_name,
-    //     username: invite.username,
-    //   })
-    // );
-    console.log(requests);
+    const invites: GroupInvite[] = res.data.groupInvites.map(
+      (invite: GroupInvite) => ({
+        studygroup_id: invite.studygroup_id,
+        invite_id: invite.invite_id,
+        first_name: invite.first_name,
+        last_name: invite.last_name,
+        username: invite.username,
+        group_name: invite.group_name,
+      })
+    );
     
     return {
       friendRequests: requests,
-      groupInvites: [],
+      groupInvites: invites,
       friends: friends,
     };
   } catch (error) {

@@ -126,6 +126,11 @@ const inviteToStudyGroup = async (req: Request, res: Response) => {
 const respondToStudyGroupInvite = async (req: Request, res: Response) => {
   try {
     const { studygroup_id, studygroup_invite_id, response, user_id } = req.body;
+    if(!studygroup_id || !studygroup_invite_id || !response || !user_id) {
+      res.status(400).send("Missing required fields");
+      return;
+    }
+    
     if (!["accepted", "rejected"].includes(response)) {
       res.status(400).send("Invalid response");
       return;

@@ -6,9 +6,9 @@ export type FriendRequest = {
 };
 
 export type GroupInvite = {
-  name: string;
+  group_name: string;
   studygroup_id: number;
-  studygroup_invite_id: number;
+  invite_id: number;
   username: string;
   first_name: string;
   last_name: string;

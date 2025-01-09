@@ -177,8 +177,9 @@ const FriendRequests: React.FC<FriendRequestProps> = ({
                     <div className="col-4">
                       <p>
                         <b>
-                          {invite?.name} (@
+                          {invite?.group_name} (@
                           {invite?.username})
+                          invite id:{invite.invite_id}
                         </b>
                       </p>
                     </div>
@@ -188,7 +189,7 @@ const FriendRequests: React.FC<FriendRequestProps> = ({
                         onClick={() =>
                           respondToGroupInviteMutation.mutate({
                             studygroup_id: invite.studygroup_id,
-                            invite_id: invite.studygroup_invite_id,
+                            invite_id: invite.invite_id,
                             response: "accepted",
                             userId: user?.user_id!,
                           })
@@ -201,7 +202,7 @@ const FriendRequests: React.FC<FriendRequestProps> = ({
                         onClick={() =>
                           respondToGroupInviteMutation.mutate({
                             studygroup_id: invite.studygroup_id,
-                            invite_id: invite.studygroup_invite_id,
+                            invite_id: invite.invite_id,
                             response: "rejected",
                             userId: user?.user_id!,
                           })
