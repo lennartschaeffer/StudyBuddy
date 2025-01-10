@@ -23,9 +23,9 @@ const ActiveSoloStudySession: React.FC<ActiveSoloStudySessionProps> = ({
 }) => {
     const queryClient = useQueryClient();
     
-    const completeSessionEarlyMutation = useMutation(
+    const completeSessionMutation = useMutation(
       ({ sessionId, sessionType }: { sessionId: number; sessionType: string }) =>
-        completeActiveSessionEarly(sessionId, sessionType),
+        completeActiveStudySession(sessionId, sessionType),
       {
         onSuccess: () => {
           queryClient.invalidateQueries(["activeStudySession", user?.user_id]);
@@ -47,16 +47,8 @@ const ActiveSoloStudySession: React.FC<ActiveSoloStudySessionProps> = ({
       },
     });
   
-    const completeSessionMutation = useMutation(completeActiveStudySession, {
-      onSuccess: () => {
-        queryClient.invalidateQueries(["activeStudySession", user?.user_id]);
-        toast("Session completed. Good work!");
-      },
-      onError: (error) => {
-        toast("Error: Could not end session. " + error);
-      },
-    });
-    
+   
+
   return (
     <div className="row w-100 h-100 d-flex justify-content-center align-items-center">
       <div className="col-12 ">
@@ -135,7 +127,7 @@ const ActiveSoloStudySession: React.FC<ActiveSoloStudySessionProps> = ({
           <button
             className="btn btn-outline-info d-flex justify-content-around align-items-center w-25 p-3"
             onClick={() =>
-              completeSessionEarlyMutation.mutate({
+              completeSessionMutation.mutate({
                 sessionId: soloSession?.session_id!,
                 sessionType: "solo",
               })

@@ -3,7 +3,7 @@ import "./HomePage.css";
 import NavBar from "../Components/NavBar";
 import StudySessionModal from "../Components/StudySessionModal";
 import { ListGroup, ListGroupItem } from "react-bootstrap";
-import { FaCheckCircle } from "react-icons/fa";
+import { FaCheckCircle, FaCircle, FaClock } from "react-icons/fa";
 import { MdOutlineTimer } from "react-icons/md";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
@@ -48,8 +48,6 @@ const StudySessionPage = () => {
     }
   );
 
-  console.log(activeStudySession);
-
   useEffect(() => {
     if (activeStudySession?.soloSession) {
       const interval = setInterval(() => {
@@ -83,8 +81,15 @@ const StudySessionPage = () => {
         />
       ) : (
         <div className="container h-100 d-flex flex-column justify-content-center align-items-center">
-          <div className="row w-100 d-flex justify-content-center">
-            <div className="col-5">
+          <div className="row w-100 ">
+            <div
+              className={`${
+                activeStudySession?.groupSessions &&
+                activeStudySession.groupSessions.length > 0
+                  ? "col-5 flex-column"
+                  : "col-12 d-flex"
+              } d-flex  gap-3 justify-content-center`}
+            >
               <div className="card h-100">
                 <div className="card-body">
                   <h3>
@@ -102,8 +107,6 @@ const StudySessionPage = () => {
                   </button>
                 </div>
               </div>
-            </div>
-            <div className="col-5">
               <div className="card h-100">
                 <div className="card-body">
                   <h3>
@@ -122,12 +125,10 @@ const StudySessionPage = () => {
                 </div>
               </div>
             </div>
-          </div>
-          {
-            activeStudySession?.groupSessions && activeStudySession.groupSessions.length > 0 && (
-              <div className="row w-100 d-flex justify-content-center mt-3">
+            {activeStudySession?.groupSessions &&
+              activeStudySession.groupSessions.length > 0 && (
                 <div className="col-5">
-                  <div className="card h-100">
+                  <div className="card">
                     <div className="card-body">
                       <h3>
                         <strong>Active Group Study Sessions</strong>
@@ -135,16 +136,43 @@ const StudySessionPage = () => {
                       <p className="text-muted">
                         View your active group sessions
                       </p>
-                      <ListGroup >
-                      
-                        
+                      <ListGroup>
+                        {activeStudySession.groupSessions.map(
+                          (groupSession: GroupStudySession, id: number) => (
+                            <ListGroupItem key={id}>
+                              <div className="row">
+                                <div className="col-7 d-flex flex-column align-items-start">
+                                  <h5 className="m-0">
+                                    <b>{groupSession.studygroups.group_name}</b>
+                                  </h5>
+                                  <p className="text-muted">
+                                    {groupSession.session_name}
+                                  </p>
+                                </div>
+                                <div className="col-5 d-flex align-items-start gap-2">
+                                  <p className="text-muted text-center m-0">
+                                    {format(
+                                      parseISO(groupSession.start_time),
+                                      "HH:mm"
+                                    )}
+                                    -
+                                    {format(
+                                      parseISO(groupSession.end_time),
+                                      "HH:mm"
+                                    )}
+                                  </p>
+                                  <FaClock className="mt-1" />
+                                </div>
+                              </div>
+                            </ListGroupItem>
+                          )
+                        )}
                       </ListGroup>
                     </div>
                   </div>
                 </div>
-              </div>
-            )
-          }
+              )}
+          </div>
         </div>
       )}
       <ToastContainer />

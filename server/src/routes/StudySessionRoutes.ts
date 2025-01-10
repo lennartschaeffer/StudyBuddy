@@ -19,17 +19,17 @@ export const StudySessionRoutes = (io: Server) => {
   router.post("/", async(req: Request, res: Response) => await createStudySession(req, res, io));
   router.post("/group", createGroupStudySession);
 
-  router.put("/completeTask/:task_id", completeTask);
+  router.put("/completeTask/:task_id",authMiddleware, completeTask);
   router.put(
-    "/completeActiveStudySession/:user_id",
+    "/completeActiveStudySession/:session_id/:session_type",authMiddleware,
     completeActiveStudySession
   );
 
   //GET
-  router.get("/activeStudySession/:user_id", getActiveStudySession);
+  router.get("/activeStudySession/:user_id",authMiddleware, getActiveStudySession);
   router.get("/recentStudySessions/:user_id",authMiddleware, getRecentStudySessions);
   //router.get("/mapStudySessionInfo/:user_id", getMapStudySessionInfo);
-  router.get("/upcomingGroupSessions/:user_id", getUpcomingStudySessionsByUser);
+  router.get("/upcomingGroupSessions/:user_id",authMiddleware, getUpcomingStudySessionsByUser);
 
   return router;
 };

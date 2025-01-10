@@ -19,7 +19,7 @@ export const getActiveSession = async (userId: number) => {
         task_completed: task.task_completed,
       }));
     }
-     session = {
+    session = {
       session_id: res.data.soloSession.session_id,
       session_name: res.data.soloSession.session_name,
       start_time: res.data.soloSession.start_time,
@@ -27,7 +27,6 @@ export const getActiveSession = async (userId: number) => {
       user_id: res.data.soloSession.user_id,
       checklist_id: res.data.soloSession.checklist_id,
       tasks: tasks,
-
     };
   }
   if (res.data.groupSessions && res.data.groupSessions.length > 0) {
@@ -36,7 +35,7 @@ export const getActiveSession = async (userId: number) => {
         session_name: session.session_name,
         start_time: session.start_time,
         end_time: session.end_time,
-        studygroups: session.studygroups.group_name,
+        studygroups: session.studygroups,
       })
     );
   }
@@ -50,19 +49,28 @@ export const completeTask = async (task: Task) => {
   return res.data;
 };
 
-export const completeActiveStudySession = async (userId: number) => {
-  const res = await axios.put(
-    `${API_URL}/studysessions/completeActiveStudySession/${userId}`
-  );
-  return res.data;
+export const completeActiveStudySession = async (
+  session_id: number,
+  session_type: string
+) => {
+  try {
+    const res = await axios.put(
+      `${API_URL}/studysessions/completeActiveStudySession/${session_id}/${session_type}`
+    );
+    return res.data;
+  } catch (error) {
+    console.error("Failed to complete active study session:", error);
+    throw error;
+  }
 };
 
 export const getRecentStudySessions = async (userId: number) => {
   console.log("Fetching recent study sessions");
   try {
     const res = await axios.get(
-      `${API_URL}/studysessions/recentStudySessions/${userId}`, {
-        withCredentials: true
+      `${API_URL}/studysessions/recentStudySessions/${userId}`,
+      {
+        withCredentials: true,
       }
     );
     console.log(res.data);

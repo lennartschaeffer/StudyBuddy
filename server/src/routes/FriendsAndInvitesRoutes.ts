@@ -9,6 +9,7 @@ import {
   removeFriend,
   getAllFriendsInSession,
 } from "../controllers/FriendsAndInvitesController";
+import { authMiddleware } from "../controllers/AuthController";
 
 export const FriendsAndInvitesRoutes = (io: Server) => {
   const router = express.Router();
@@ -19,9 +20,9 @@ export const FriendsAndInvitesRoutes = (io: Server) => {
   router.post("/respond", async (req: Request, res: Response) => {
     await respondToFriendRequest(req, res, io);
   });
-  router.get("/:user_id", getFriendsAndInvites);
-  router.get("/getAllFriendsInSession/:user_id", getAllFriendsInSession);
-  router.delete("/removeFriend/:user_id/:friend_id", removeFriend);
+  router.get("/:user_id", authMiddleware, getFriendsAndInvites);
+  router.get("/getAllFriendsInSession/:user_id", authMiddleware, getAllFriendsInSession);
+  router.delete("/removeFriend/:user_id/:friend_id", authMiddleware, removeFriend);
 
   return router;
 };
