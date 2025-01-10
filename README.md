@@ -14,6 +14,6 @@ StudyBuddy is a web application designed to help students find the perfect study
 
 - **Frontend**: React, TypeScript, React-Router, React-Query, Axios, Leaflet, Bootstrap
 - **Backend**: Node.js, TypeScript, Express, PostgreSQL, Socket.io
-- **Authentication**: JWT, bcrypt
+- **Authentication**: JWT, HTTP-Only Cookies
 
 
