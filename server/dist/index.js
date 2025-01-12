@@ -30,23 +30,29 @@ app.use((0, cors_1.default)({
 }));
 app.use(body_parser_1.default.urlencoded({ extended: true }));
 app.use((0, cookie_parser_1.default)());
+BigInt.prototype.toJSON = function () {
+    return this.toString();
+};
 //Routes
 const StudySessionRoutes_1 = require("./routes/StudySessionRoutes");
 const FriendsAndInvitesRoutes_1 = require("./routes/FriendsAndInvitesRoutes");
 const StudyGroupRoutes_1 = require("./routes/StudyGroupRoutes");
 const AuthRoutes_1 = require("./routes/AuthRoutes");
+const UserRoutes_1 = require("./routes/UserRoutes");
+//test route
+app.get("/", (req, res) => {
+    res.send("Hello World");
+});
 app.use("/studysessions", (0, StudySessionRoutes_1.StudySessionRoutes)(io));
-// app.use("/users", UserRoutes())
+app.use("/users", (0, UserRoutes_1.UserRoutes)());
 app.use("/friends", (0, FriendsAndInvitesRoutes_1.FriendsAndInvitesRoutes)(io));
 app.use("/studygroups", (0, StudyGroupRoutes_1.StudyGroupRoutes)(io));
 app.use("/auth", (0, AuthRoutes_1.AuthRoutes)());
 //listen for socket events
 io.on("connection", (socket) => {
-    console.log(`User connected: ${socket.id}`);
     //when a user connects, join the room with their user id 
     socket.on("joinRoom", (userId) => {
         socket.join(userId.toString());
-        console.log(`User ${userId} joined room ${userId}`);
     });
 });
 //start server

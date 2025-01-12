@@ -45,8 +45,8 @@ export const UserProvider = ({ children }: Props) => {
       console.log("No user: ", error);
       setUser(null);
     }
-    
   };
+
   const initAuth = async () => {
     try {
       await fetchUser();
@@ -89,11 +89,12 @@ export const UserProvider = ({ children }: Props) => {
   const loginUser = async (email: string, password: string) => {
     axios.defaults.withCredentials = true;
     try {
-      await axios
+      const res = await axios
       .post(`${API_URL}/auth/login`, {
         email: email,
         password: password,
       })
+      console.log(res.data);
       await fetchUser();
       navigate("/home");
     } catch (error) {

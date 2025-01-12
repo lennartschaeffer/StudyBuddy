@@ -45,6 +45,10 @@ import { StudyGroupRoutes } from "./routes/StudyGroupRoutes";
 import { AuthRoutes } from "./routes/AuthRoutes";
 import { UserRoutes } from "./routes/UserRoutes";
 
+//test route
+app.get("/", (req: Request, res: Response) => {
+  res.send("Hello World");
+});
 
 app.use("/studysessions", StudySessionRoutes(io));
 

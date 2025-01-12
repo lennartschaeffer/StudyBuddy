@@ -13,16 +13,34 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.getPotentialFriends = void 0;
-const db_1 = __importDefault(require("../db"));
+const prismaClient_1 = __importDefault(require("../prismaClient"));
 const getPotentialFriends = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { user_id } = req.params;
+    const user_id = Number(req.params.user_id);
     try {
-        const users = yield db_1.default.query(`SELECT u.first_name, u.last_name, u.username, u.user_id
-             FROM users u
-             LEFT JOIN friends f1 ON u.user_id = f1.friend_id AND f1.user_id = $1
-             LEFT JOIN friends f2 ON u.user_id = f2.user_id AND f2.friend_id = $1
-             WHERE u.user_id != $1 AND f1.friend_id IS NULL AND f2.user_id IS NULL;`, [user_id]);
-        res.json(users.rows);
+        const potentialFriends = yield prismaClient_1.default.users.findMany({
+            where: {
+                AND: [
+                    { user_id: { not: user_id } }, // Exclude the current user
+                    {
+                        friends_friends_user_idTousers: {
+                            none: { friend_id: user_id }, // User is not in `friends` as a friend
+                        },
+                    },
+                    {
+                        friends_friends_friend_idTousers: {
+                            none: { user_id: user_id }, // User is not in `friends` as a user
+                        },
+                    },
+                ],
+            },
+            select: {
+                first_name: true,
+                last_name: true,
+                username: true,
+                user_id: true,
+            },
+        });
+        res.json(potentialFriends);
     }
     catch (error) {
         console.error(error);

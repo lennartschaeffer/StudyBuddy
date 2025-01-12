@@ -107,12 +107,12 @@ export const login = async (req: Request, res: Response) => {
     //set access token in http only cookie
     res.cookie("access_token", data.session.access_token, {
       httpOnly: true, //prevent access via JavaScript
-      secure: process.env.NODE_ENV === "production", //send cookie only over HTTPS in production
-      sameSite: "strict", // Prevent CSRF
+      secure: true, //send cookie only over HTTPS in production
+      sameSite: "none", 
       maxAge: data.session.expires_in * 1000, // Expiration time in milliseconds
     });
     const user = await getUserByAuthId(data.user.id);
-    res.status(200).json(user);
+    res.status(200).json({user: user, message: "Logged in successfully"});
   } catch (error) {
     console.log(error);
     res.status(500).send("Error logging in");

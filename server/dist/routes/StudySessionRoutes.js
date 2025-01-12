@@ -21,14 +21,13 @@ const StudySessionRoutes = (io) => {
     //POST
     router.post("/", (req, res) => __awaiter(void 0, void 0, void 0, function* () { return yield (0, StudySessionController_1.createStudySession)(req, res, io); }));
     router.post("/group", StudySessionController_1.createGroupStudySession);
-    router.put("/completeActiveStudySessionEarly/:session_id/:session_type", StudySessionController_1.completeActiveStudySessionEarly);
-    router.put("/completeTask/:task_id", StudySessionController_1.completeTask);
-    router.put("/completeActiveStudySession/:user_id", StudySessionController_1.completeActiveStudySession);
+    router.put("/completeTask/:task_id", AuthController_1.authMiddleware, StudySessionController_1.completeTask);
+    router.put("/completeActiveStudySession/:session_id/:session_type", AuthController_1.authMiddleware, StudySessionController_1.completeActiveStudySession);
     //GET
-    router.get("/activeStudySession/:user_id", StudySessionController_1.getActiveStudySession);
+    router.get("/activeStudySession/:user_id", AuthController_1.authMiddleware, StudySessionController_1.getActiveStudySession);
     router.get("/recentStudySessions/:user_id", AuthController_1.authMiddleware, StudySessionController_1.getRecentStudySessions);
     //router.get("/mapStudySessionInfo/:user_id", getMapStudySessionInfo);
-    router.get("/upcomingGroupSessions/:user_id", StudySessionController_1.getUpcomingStudySessionsByUser);
+    router.get("/upcomingGroupSessions/:user_id", AuthController_1.authMiddleware, StudySessionController_1.getUpcomingStudySessionsByUser);
     return router;
 };
 exports.StudySessionRoutes = StudySessionRoutes;
