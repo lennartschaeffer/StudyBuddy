@@ -35,5 +35,71 @@ const getPotentialFriends = async (req: Request, res: Response) => {
         res.status(500).send("database error");
     }
 };
+const getProfileInfo = async (req: Request, res: Response) => {
+    try {
+        const { user_id } = req.params;
+        const totalStudyTime = await getTotalStudyTime(user_id);
+        const numberOfStudyGroups = await getNumberOfStudyGroups(user_id);
+        const numberOfStudySessions = await getNumberOfStudySessions(user_id)
+        res.json({ totalStudyTime: totalStudyTime, numberOfStudyGroups: numberOfStudyGroups, numberOfStudySessions: numberOfStudySessions });
+    } catch (error) {
+        console.error(error);
+        res.status(500).send("database error");
+    }
+}
 
-export { getPotentialFriends };
+const getNumberOfStudyGroups = async (userId: string) => {
+    try {
+        //get the number of study groups the user is in
+        const numberOfStudyGroups = await prisma.user_studygroups.count({
+            where: {
+                user_id: Number(userId),
+            },
+        });
+        return numberOfStudyGroups;
+    } catch (error) {
+        console.error(error);
+        throw new Error("Error getting number of study groups");
+    }
+}
+const getNumberOfStudySessions = async (userId: string) => {
+    try {
+        //get the number of study sessions the user has completed
+        const numberOfStudySessions = await prisma.solo_studysessions.count({
+            where: {
+                user_id: Number(userId),
+            },
+        });
+        return numberOfStudySessions;
+    } catch (error) {
+        console.error(error);
+        throw new Error("Error getting number of study sessions");
+    }
+}
+const getTotalStudyTime = async (userId: string) => {
+    try {
+       
+        const times = await prisma.solo_studysessions.findMany({
+            where: {
+                user_id: Number(userId),
+            },
+            select: {
+                start_time: true,
+                end_time: true,
+            },
+        });
+        //sum up the total 
+        let total = 0;
+        times.forEach((time) => {
+            total += (time.end_time.getTime() - time.start_time.getTime());
+        });
+        //convert to minutes
+        total = total / (60000);
+        return total;
+    } catch (error) {
+        console.error(error);
+        throw new Error("Error getting total study time");
+    }
+}
+
+export { getPotentialFriends, getProfileInfo };

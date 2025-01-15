@@ -149,7 +149,8 @@ const StudySessionPage = () => {
                                     {groupSession.session_name}
                                   </p>
                                 </div>
-                                <div className="col-5 d-flex align-items-start gap-2">
+                                <div className="col-5 d-flex flex-column">
+                                  <div className="d-flex justify-content-center gap-2">
                                   <p className="text-muted text-center m-0">
                                     {format(
                                       parseISO(groupSession.start_time),
@@ -161,7 +162,10 @@ const StudySessionPage = () => {
                                       "HH:mm"
                                     )}
                                   </p>
-                                  <FaClock className="mt-1" />
+                                    
+                                    <FaClock className="mt-1" />
+                                  </div>
+                                  <button className="btn btn-sm btn-success mt-2"><strong>Join</strong></button>  
                                 </div>
                               </div>
                             </ListGroupItem>

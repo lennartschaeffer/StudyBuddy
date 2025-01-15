@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_URL } from "../apiRoute";
 import { toast } from "react-toastify";
-import { is } from "date-fns/locale";
+
 
 type UserContextType = {
   user: UserProfile | null;
@@ -39,11 +39,14 @@ export const UserProvider = ({ children }: Props) => {
         username: res.data.username,
         first_name: res.data.first_name,
         last_name: res.data.last_name,
+        degree: res.data.degree,
+        university: res.data.university,
       };
       setUser(user);
     } catch (error) {
       console.log("No user: ", error);
       setUser(null);
+      navigate("/login");
     }
   };
 

@@ -17,6 +17,7 @@ import { ListGroup } from "react-bootstrap";
 import { RiCalendarScheduleLine } from "react-icons/ri";
 import { useGetStudyGroups } from "../Context/useGetStudyGroups";
 import { GroupStudySession } from "../Models/StudySession";
+import axios from "axios";
 
 const StudyGroupPage = () => {
   const { user } = useAuth();
@@ -28,12 +29,13 @@ const StudyGroupPage = () => {
   const [groupId, setGroupId] = useState<number>();
 
   const { studyGroups } = useGetStudyGroups();
-
+  
   const { data: upcomingSessions } = useQuery(
     "upcomingSessions",
     () => getUpcomingGroupSessions(user?.user_id!),
     {
-      enabled: !!user?.user_id,
+      enabled: !!user?.user_id, 
+      staleTime: 5000,
       onError: (error) => {
         console.error("Failed to fetch upcoming sessions:", error);
       },
@@ -140,41 +142,44 @@ const StudyGroupPage = () => {
                   View and manage your upcoming study sessions.
                 </p>
                 <ListGroup>
-                    {upcomingSessions && upcomingSessions.length > 0 ? (
-                      upcomingSessions.map((session: GroupStudySession, id: number) => (
+                  {upcomingSessions && upcomingSessions.length > 0 ? (
+                    upcomingSessions.map(
+                      (session: GroupStudySession, id: number) => (
                         <ListGroup.Item key={`${groupId}-${id}`}>
-                        <div className="row">
-                          <div className="col-7">
-                          <b>{session.session_name}</b>
+                          <div className="row">
+                            <div className="col-7">
+                              <b>{session.session_name}</b>
+                            </div>
+                            <div className="col-5">
+                              <p
+                                className="text-muted text-center"
+                                style={{ fontSize: "12px" }}
+                              >
+                                {new Date(session.start_time)
+                                  .toLocaleString("en-US", {
+                                    month: "numeric",
+                                    day: "numeric",
+                                    year: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                    hour12: false,
+                                  })
+                                  .replace(",", " at")}
+                              </p>
+                            </div>
+                            <div className="col-12">
+                              <div className="card-text text-info">
+                                <strong>
+                                  {session.studygroups.group_name ??
+                                    "Study Group"}
+                                </strong>
+                              </div>
+                            </div>
                           </div>
-                          <div className="col-5">
-                          <p
-                            className="text-muted text-center"
-                            style={{ fontSize: "12px" }}
-                          >
-                            {new Date(session.start_time)
-                            .toLocaleString("en-US", {
-                              month: "numeric",
-                              day: "numeric",
-                              year: "numeric",
-                              hour: "2-digit",
-                              minute: "2-digit",
-                              hour12: false,
-                            })
-                            .replace(",", " at")}
-                          </p>
-                          </div>
-                          <div className="col-12">
-                          <div className="card-text text-info">
-                            <strong>{session.studygroups.group_name ?? "Study Group"}</strong>
-                          </div>
-                          </div>
-                        </div>
                         </ListGroup.Item>
-                      ))
                       )
-                    
-                     : (
+                    )
+                  ) : (
                     <h6 className="card-text">No upcoming sessions.</h6>
                   )}
                 </ListGroup>

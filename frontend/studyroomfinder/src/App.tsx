@@ -15,6 +15,7 @@ import SideBar from "./Components/SideBar";
 const queryClient = new QueryClient();
 
 function App() {
+  
   const socket = io(API_URL);
   useEffect(() => {
     socket.on("receive_message", (data) => {

@@ -10,7 +10,7 @@ import { IoPersonCircleSharp } from "react-icons/io5";
 import io from "socket.io-client";
 import { useAuth } from "../Context/useAuth";
 import { useQuery } from "react-query";
-import { getAllUsers } from "../endpoints/StudyBuddies";
+import { getAllUsers } from "../endpoints/Users";
 import { FaSearch } from "react-icons/fa";
 
 const FindBuddiesPage = () => {

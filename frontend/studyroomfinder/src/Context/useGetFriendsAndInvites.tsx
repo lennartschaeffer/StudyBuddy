@@ -16,13 +16,14 @@ const FriendsAndInvitesContext = createContext<FriendsAndInvitesContext>(
 export type Props = { children: React.ReactNode };
 
 export const FriendsAndInvitesProvider = ({ children }: Props) => {
-  const { user } = useAuth();
-
+  const { user, isLoggedIn } = useAuth();
+  console.log(isLoggedIn());
   const { data: friendsAndInvites, refetch } = useQuery(
     ["requestsAndInvites", user?.user_id],
     () => getFriendRequestsAndGroupInvites(user?.user_id!),
     {
-      enabled: !!user?.user_id,
+      enabled: isLoggedIn() && !!user?.user_id,
+      staleTime: 5000,
       onSuccess: () => {
       },
       onError: (error) => {

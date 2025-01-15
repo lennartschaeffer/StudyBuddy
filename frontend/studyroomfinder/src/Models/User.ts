@@ -8,4 +8,12 @@ export type UserProfile = {
     username: string;
     first_name: string;
     last_name: string;
+    degree: string;
+    university: string;
+}
+
+export type UserProfileInfo = {
+    totalStudyTime: string;
+    numberOfStudyGroups: number;
+    numberOfStudySessions: number;
 }

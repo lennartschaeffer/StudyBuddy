@@ -64,6 +64,7 @@ const Map: React.FC<MapProps> = ({ studySessionMapInfo }) => {
     axios
       .get(OSM_API_URL, {
         params: { data: query },
+        withCredentials: false,
       })
       .then((res) => {
         // console.log(res.data.elements);
