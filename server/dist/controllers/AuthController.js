@@ -102,8 +102,8 @@ const login = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         //set access token in http only cookie
         res.cookie("access_token", data.session.access_token, {
             httpOnly: true, //prevent access via JavaScript
-            secure: true, //send cookie only over HTTPS in production
-            sameSite: "none",
+            secure: process.env.NODE_ENV == "production", //send cookie only over HTTPS in production
+            sameSite: process.env.NODE_ENV == "production" ? "none" : "strict",
             maxAge: data.session.expires_in * 1000, // Expiration time in milliseconds
         });
         const user = yield getUserByAuthId(data.user.id);

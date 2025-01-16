@@ -5,13 +5,13 @@ import { Link } from "react-router-dom";
 import { useQuery } from "react-query";
 import { getRecentStudySessions } from "../endpoints/StudySessions";
 import { GroupStudySession, SoloStudySession } from "../Models/StudySession";
-import { ListGroup } from "react-bootstrap";
+import { ListGroup, Spinner } from "react-bootstrap";
 import { FaMapMarker, FaMapMarkerAlt, FaSearch } from "react-icons/fa";
 import { IoSchoolOutline } from "react-icons/io5";
 import { FaUser, FaUserGroup } from "react-icons/fa6";
 const HomePage = () => {
   const { user } = useAuth();
-  const { data: recentStudySessions } = useQuery(
+  const { data: recentStudySessions, isLoading } = useQuery(
     "recentStudySessions",
     () => getRecentStudySessions(user?.user_id!),
     {
@@ -121,6 +121,9 @@ const HomePage = () => {
                   <p className="text-muted">View your recent study sessions</p>
                   {
                     <ListGroup className="overflow-scroll">
+                      {
+                        isLoading && <Spinner variant="dark" animation="grow" />
+                      }
                       {recentStudySessions?.userSessions.length > 0 ? (
                         recentStudySessions?.userSessions.map(
                           (session: SoloStudySession, id: number) => (
@@ -167,7 +170,7 @@ const HomePage = () => {
                                     <div className="col-12">
                                       <p className="card-text m-0 text-success">
                                         <strong>
-                                          {session.studygroups.group_name}
+                                          {session?.studygroups?.group_name}
                                         </strong>
                                       </p>
                                       <p
@@ -192,7 +195,7 @@ const HomePage = () => {
                             )
                         )
                        : (
-                        <h6 className="card-text">No upcoming sessions.</h6>
+                        <h6 className="card-text p-2">No recent group sessions.</h6>
                       )
                       }
                     </ListGroup>

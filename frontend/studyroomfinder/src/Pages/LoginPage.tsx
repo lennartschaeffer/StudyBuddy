@@ -3,8 +3,8 @@ import "./HomePage.css";
 import Button from "react-bootstrap/Button";
 import Form from "react-bootstrap/Form";
 import { useAuth } from "../Context/useAuth";
-import StudyIcon from "../icons/studying.png";
 import { toast, ToastContainer } from "react-toastify";
+import { Link } from "react-router-dom";
 
 const LoginPage = () => {
   const [email, setEmail] = useState("");
@@ -49,9 +49,13 @@ const LoginPage = () => {
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </Form.Group>
+              <div className="d-flex flex-column">
               <Button variant="dark" className="w-100" onClick={handleLogin}>
                 Log In
               </Button>
+              <Link to={"/register"} className="">Don't Have An Account Yet? Click Here to Register.</Link>
+              </div>
+              
             </Form>
           </div>
         </div>

@@ -5,7 +5,9 @@ import { GroupStudySession } from "../Models/StudySession";
 
 export const getActiveSession = async (userId: number) => {
   const res = await axios.get(
-    `${API_URL}/studysessions/activeStudySession/${userId}`
+    `${API_URL}/studysessions/activeStudySession/${userId}`,{
+      withCredentials: true
+    }
   );
   console.log(res.data);
   let session: SoloStudySession | undefined;
@@ -35,7 +37,9 @@ export const getActiveSession = async (userId: number) => {
         session_name: session.session_name,
         start_time: session.start_time,
         end_time: session.end_time,
-        studygroups: session.studygroups,
+        group_name: session.group_name,
+        members: session.members ?? [],
+        group_studysession_id: session.group_studysession_id,
       })
     );
   }
@@ -44,7 +48,9 @@ export const getActiveSession = async (userId: number) => {
 
 export const completeTask = async (task: Task) => {
   const res = await axios.put(
-    `${API_URL}/studysessions/completeTask/${task?.task_id}`
+    `${API_URL}/studysessions/completeTask/${task?.task_id}`,{
+      withCredentials: true
+    }
   );
   return res.data;
 };
@@ -53,9 +59,14 @@ export const completeActiveStudySession = async (
   session_id: number,
   session_type: string
 ) => {
+  if (!session_id || !session_type) {
+    throw new Error("Missing required fields");
+  }
   try {
     const res = await axios.put(
-      `${API_URL}/studysessions/completeActiveStudySession/${session_id}/${session_type}`
+      `${API_URL}/studysessions/completeActiveStudySession/${session_id}/${session_type}`,{
+        withCredentials: true
+      }
     );
     return res.data;
   } catch (error) {
@@ -90,7 +101,9 @@ export const completeActiveSessionEarly = async (
       throw new Error("Missing required fields");
     }
     const res = await axios.put(
-      `${API_URL}/studysessions/completeActiveStudySessionEarly/${sessionId}/${sessionType}`
+      `${API_URL}/studysessions/completeActiveStudySessionEarly/${sessionId}/${sessionType}`,{
+        withCredentials: true
+      }
     );
     return res.data;
   } catch (error) {

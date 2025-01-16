@@ -149,14 +149,44 @@ const getGroupStudySessions = (user_id) => __awaiter(void 0, void 0, void 0, fun
             studygroups: {
                 select: {
                     group_name: true,
+                    user_studygroups: {
+                        select: {
+                            user_id: true,
+                            users: {
+                                select: {
+                                    username: true,
+                                    first_name: true,
+                                    last_name: true,
+                                },
+                            },
+                            user_role: true,
+                        },
+                    },
                 },
             },
             session_name: true,
             start_time: true,
             end_time: true,
+            group_studysessions_id: true,
         },
     });
-    return groupSessions;
+    //format the data
+    const formattedGroupSessions = groupSessions.map((session) => ({
+        session_id: session.group_studysessions_id,
+        group_studysession_id: session.group_studysessions_id,
+        session_name: session.session_name,
+        group_name: session.studygroups.group_name,
+        start_time: session.start_time,
+        end_time: session.end_time,
+        members: session.studygroups.user_studygroups.map((user) => ({
+            user_id: user.user_id,
+            username: user.users.username,
+            first_name: user.users.first_name,
+            last_name: user.users.last_name,
+            user_role: user.user_role,
+        }))
+    }));
+    return formattedGroupSessions;
 });
 // const getMapStudySessionInfo = async (req: Request, res: Response) => {
 //   const { user_id } = req.params;

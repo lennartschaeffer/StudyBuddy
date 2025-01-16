@@ -36,13 +36,15 @@ const SideBar: React.FC<SideBarProps> = ({ minimize }) => {
       <div className="row">
         <div className="bg-dark col-auto col-12 min-vh-100">
           {!minimized ? (
-            <Link
-              to={"/home"}
-              className="text-light text-decoration-none d-flex align-items-center gap-4"
-            >
-              <h4 className="m-3">StudyBuddy</h4>
-              <RxCross1 onClick={handleMinimizeSideBar} />
-            </Link>
+            <div className="d-flex align-items-center justify-content-between">
+              <Link
+                to={"/home"}
+                className="text-light text-decoration-none d-flex align-items-center gap-4"
+              >
+                <h4 className="m-3">StudyBuddy</h4>
+              </Link>
+              <RxCross1 onClick={handleMinimizeSideBar} color="white"/>
+            </div>
           ) : (
             <GiHamburgerMenu
               onClick={handleMinimizeSideBar}
@@ -106,7 +108,6 @@ const SideBar: React.FC<SideBarProps> = ({ minimize }) => {
                 {!minimized && <h5 className="m-0">Map</h5>}
               </Link>
             </li>
-            
           </ul>
           <ul className="nav nav-pills flex-column ">
             <li className="nav-item">

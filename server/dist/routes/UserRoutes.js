@@ -10,6 +10,7 @@ const AuthController_1 = require("../controllers/AuthController");
 const UserRoutes = () => {
     const router = express_1.default.Router();
     router.get("/getAllUsers/:user_id", AuthController_1.authMiddleware, UsersController_1.getPotentialFriends);
+    router.get("/getProfileInfo/:user_id", AuthController_1.authMiddleware, UsersController_1.getProfileInfo);
     return router;
 };
 exports.UserRoutes = UserRoutes;

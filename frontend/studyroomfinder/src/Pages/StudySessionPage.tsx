@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import "./HomePage.css";
 import NavBar from "../Components/NavBar";
 import StudySessionModal from "../Components/StudySessionModal";
-import { ListGroup, ListGroupItem } from "react-bootstrap";
+import { ListGroup, ListGroupItem, Spinner } from "react-bootstrap";
 import { FaCheckCircle, FaCircle, FaClock } from "react-icons/fa";
 import { MdOutlineTimer } from "react-icons/md";
 import { toast, ToastContainer } from "react-toastify";
@@ -23,16 +23,25 @@ import { BiGroup, BiUser } from "react-icons/bi";
 import CreateGroupStudySessionModal from "../Components/CreateGroupStudySessionModal";
 import { GroupStudySession, SoloStudySession } from "../Models/StudySession";
 import ActiveSoloStudySession from "../Components/ActiveSoloStudySession";
+import ActiveGroupStudySession from "../Components/ActiveGroupStudySession";
 
 const StudySessionPage = () => {
   const [showSessionModal, setShowSessionModal] = useState(false);
   const [showGroupSessionModal, setShowGroupSessionModal] = useState(false);
   const [timeLeft, setTimeLeft] = useState("");
+  const [joinStudyGroupInfo, setJoinStudyGroupInfo] =
+    useState<GroupStudySession>();
+  const [joinedActiveGroupSession, setJoinedActiveGroupSession] =
+    useState<boolean>(false);
 
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
-  const { data: activeStudySession, refetch } = useQuery(
+  const {
+    data: activeStudySession,
+    refetch,
+    isLoading,
+  } = useQuery(
     ["activeStudySession", user?.user_id],
     () => getActiveSession(user?.user_id!),
     {
@@ -47,6 +56,8 @@ const StudySessionPage = () => {
       },
     }
   );
+
+  console.log(activeStudySession);
 
   useEffect(() => {
     if (activeStudySession?.soloSession) {
@@ -77,6 +88,16 @@ const StudySessionPage = () => {
         <ActiveSoloStudySession
           soloSession={activeStudySession.soloSession}
           timeLeft={timeLeft}
+          user={user!}
+        />
+      ) : isLoading ? (
+        <div className="container h-100 d-flex flex-column justify-content-center align-items-center">
+          <Spinner variant="light" animation="grow" />
+        </div>
+        
+      ) : joinedActiveGroupSession ? (
+        <ActiveGroupStudySession
+          groupSession={joinStudyGroupInfo!}
           user={user!}
         />
       ) : (
@@ -143,7 +164,7 @@ const StudySessionPage = () => {
                               <div className="row">
                                 <div className="col-7 d-flex flex-column align-items-start">
                                   <h5 className="m-0">
-                                    <b>{groupSession.studygroups.group_name}</b>
+                                    <b>{groupSession.group_name}</b>
                                   </h5>
                                   <p className="text-muted">
                                     {groupSession.session_name}
@@ -151,21 +172,28 @@ const StudySessionPage = () => {
                                 </div>
                                 <div className="col-5 d-flex flex-column">
                                   <div className="d-flex justify-content-center gap-2">
-                                  <p className="text-muted text-center m-0">
-                                    {format(
-                                      parseISO(groupSession.start_time),
-                                      "HH:mm"
-                                    )}
-                                    -
-                                    {format(
-                                      parseISO(groupSession.end_time),
-                                      "HH:mm"
-                                    )}
-                                  </p>
-                                    
+                                    <p className="text-muted text-center m-0">
+                                      {format(
+                                        parseISO(groupSession.start_time),
+                                        "HH:mm"
+                                      )}
+                                      -
+                                      {format(
+                                        parseISO(groupSession.end_time),
+                                        "HH:mm"
+                                      )}
+                                    </p>
                                     <FaClock className="mt-1" />
                                   </div>
-                                  <button className="btn btn-sm btn-success mt-2"><strong>Join</strong></button>  
+                                  <button
+                                    className="btn btn-sm btn-success mt-2"
+                                    onClick={() => {
+                                      setJoinStudyGroupInfo(groupSession);
+                                      setJoinedActiveGroupSession(true);
+                                    }}
+                                  >
+                                    <strong>Join</strong>
+                                  </button>
                                 </div>
                               </div>
                             </ListGroupItem>

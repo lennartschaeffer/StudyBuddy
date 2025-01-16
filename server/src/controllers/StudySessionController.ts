@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
 import { Server } from "socket.io";
 import { supabase } from "../supabaseClient";
-import { log } from "console";
+import { group, log } from "console";
 import prisma from "../prismaClient";
 
 
@@ -153,17 +153,46 @@ const getGroupStudySessions = async (user_id: string) => {
         studygroups: {
           select: {
             group_name: true,
+            user_studygroups: {
+              select: {
+                user_id: true,
+                users: {
+                  select: {
+                    username: true,
+                    first_name: true,
+                    last_name: true,
+                  },
+                },
+                user_role: true,
+              },
+            },
           },
         },
         session_name: true,
         start_time: true,
         end_time: true,
+        group_studysessions_id: true,
       },
     });
   
-   
+   //format the data
+   const formattedGroupSessions = groupSessions.map((session) => ({
+    session_id: session.group_studysessions_id,
+    group_studysession_id: session.group_studysessions_id,
+    session_name: session.session_name,
+    group_name: session.studygroups.group_name,
+    start_time: session.start_time,
+    end_time: session.end_time,
+    members: session.studygroups.user_studygroups.map((user) => ({
+      user_id: user.user_id,
+      username: user.users.username,
+      first_name: user.users.first_name,
+      last_name: user.users.last_name,
+      user_role: user.user_role,
+    }))
+  }));
 
-  return groupSessions;
+  return formattedGroupSessions;
 };
 
 // const getMapStudySessionInfo = async (req: Request, res: Response) => {

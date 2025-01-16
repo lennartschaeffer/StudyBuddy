@@ -1,3 +1,4 @@
+import { Buddy } from "./StudyBuddy";
 import { StudyGroup } from "./StudyGroup";
 
 export type Task = {
@@ -19,10 +20,13 @@ export type SoloStudySession = {
 export type GroupStudySession = {
     session_id: number;
     session_name: string;
-    studygroups: StudyGroup;
+    group_name: string;
     start_time: string;
+    studygroups: StudyGroup | undefined;
     end_time: string;
     studygroup_id: number;
+    members: Buddy[] | undefined;
+    group_studysession_id: number;
 }
 
 export type StudySessionMapInfo = {

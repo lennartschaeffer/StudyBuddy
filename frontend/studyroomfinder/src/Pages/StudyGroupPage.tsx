@@ -170,7 +170,7 @@ const StudyGroupPage = () => {
                             <div className="col-12">
                               <div className="card-text text-info">
                                 <strong>
-                                  {session.studygroups.group_name ??
+                                  {session.group_name ??
                                     "Study Group"}
                                 </strong>
                               </div>
