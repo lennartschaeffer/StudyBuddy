@@ -1,6 +1,6 @@
-import Map from "../Components/Map";
+import Map from "../components/Map";
 import "./MapPage.css";
-import NavBar from "../Components/NavBar";
+import NavBar from "../components/NavBar";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { API_URL } from "../apiRoute";

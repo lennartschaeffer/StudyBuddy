@@ -1,9 +1,9 @@
 import { useState } from "react";
 import { Modal, Button, Form, Toast } from "react-bootstrap";
-import { useAuth } from "../Context/useAuth";
+import { useAuth } from "../../Context/useAuth";
 import { toast, ToastContainer } from "react-toastify";
 import { useMutation, useQueryClient } from "react-query";
-import { createStudyGroup } from "../endpoints/StudyGroups";
+import { createStudyGroup } from "../../endpoints/StudyGroups";
 
 interface CreateStudyGroupModalProps {
   show: boolean;

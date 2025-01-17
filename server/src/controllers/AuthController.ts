@@ -20,28 +20,37 @@ const createAuthUser = async (email: string, password: string) => {
       password: password,
     });
     if (error) {
-      console.log(error);
-      throw new Error("Error creating auth user");
+      throw new Error(error.message)
     }
     if (!data || !data.user) {
       throw new Error("Coudlnt get auth user info");
     }
     return data.user.id;
-  } catch (error) {
+  } catch (error: any) {
     console.log(error);
-    throw new Error("Error creating auth user");
+    const errorMessage = error.message || "Error signing up";
+    throw new Error(errorMessage);
   }
 };
 
 const createDbUser = async (userData: createUserData) => {
   try {
+    //check if the user already exists
+    const userExists = await prisma.users.findUnique({
+      where:{
+        username: userData.username
+      }
+    });
+    if(userExists){
+      throw new Error("User already exists");
+    }
     const user = await prisma.users.create({
       data: userData,
     });
     return user;
-  } catch (error) {
+  } catch (error: any) {
     console.log(error);
-    throw new Error("Error creating database user");
+    throw new Error(error.message || "Error creating user");
   }
 };
 
@@ -73,9 +82,10 @@ export const signUp = async (req: Request, res: Response) => {
     };
     await createDbUser(userData);
     res.status(201).send("User created");
-  } catch (error) {
+  } catch (error : any) {
     console.log(error);
-    res.status(500).send("Error signing up");
+    const errorMessage = error.message || "Error signing up";
+    res.status(500).send(errorMessage);
   }
 };
 

@@ -1,10 +1,9 @@
 import axios from "axios";
-import { API_URL } from "../apiRoute";
 import axiosInstance from "../axiosInstanceTest/axiosInstance";
 
 export const getStudyGroups = async (userId: number) => {
   try {
-    const res = await axiosInstance.get(`${API_URL}/studygroups/${userId}`,{
+    const res = await axiosInstance.get(`${import.meta.env.VITE_API_URL}/studygroups/${userId}`,{
       withCredentials: true
     });
     console.log(res.data);
@@ -17,7 +16,7 @@ export const getStudyGroups = async (userId: number) => {
 
 export const createStudyGroup = async (group_name: string, user_id: number) => {
   try {
-    const res = await axiosInstance.post(`${API_URL}/studygroups`, {
+    const res = await axiosInstance.post(`${import.meta.env.VITE_API_URL}/studygroups`, {
       user_id: user_id,
       group_name: group_name,
     },{
@@ -36,7 +35,7 @@ export const inviteToStudyGroup = async (
   studygroup_id: number
 ) => {
   try {
-    const res = await axiosInstance.post(`${API_URL}/studygroups/invite`, {
+    const res = await axiosInstance.post(`${import.meta.env.VITE_API_URL}/studygroups/invite`, {
       sender_id: sender_id,
       receiver_id: receiver_id,
       studygroup_id: studygroup_id,
@@ -68,7 +67,7 @@ export const createGroupStudySession = async (
       requestBody.start_time = new Date(start_time).toISOString();
     }
 
-    const res = await axiosInstance.post(`${API_URL}/studysessions/group`, requestBody,{
+    const res = await axiosInstance.post(`${import.meta.env.VITE_API_URL}/studysessions/group`, requestBody,{
       withCredentials: true
     });
     console.log(res.data);
@@ -82,7 +81,7 @@ export const createGroupStudySession = async (
 export const getUpcomingGroupSessions = async (userId: number) => {
   try {
     const res = await axiosInstance.get(
-      `${API_URL}/studysessions/upcomingGroupSessions/${userId}`,{
+      `${import.meta.env.VITE_API_URL}/studysessions/upcomingGroupSessions/${userId}`,{
         withCredentials: true
       }
     );

@@ -9,8 +9,9 @@ import { API_URL } from "./apiRoute";
 import { toast } from "react-toastify";
 import { FriendsAndInvitesProvider } from "./Context/useGetFriendsAndInvites";
 import { StudyGroupProvider } from "./Context/useGetStudyGroups";
-import NavBar from "./Components/NavBar";
-import SideBar from "./Components/SideBar";
+import NavBar from "./components/NavBar";
+import SideBar from "./components/SideBar";
+import { ThemeProvider } from "./components/theme-provider";
 
 const queryClient = new QueryClient();
 
@@ -29,7 +30,9 @@ function App() {
         <UserProvider>
           <FriendsAndInvitesProvider>
             <StudyGroupProvider>
+              <ThemeProvider defaultTheme="dark" storageKey="vite-ui-theme">
               <Outlet />
+              </ThemeProvider>
             </StudyGroupProvider>
           </FriendsAndInvitesProvider>
         </UserProvider>

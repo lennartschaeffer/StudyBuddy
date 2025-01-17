@@ -1,16 +1,15 @@
 import { useState } from "react";
-import NavBar from "../Components/NavBar";
 import "./HomePage.css";
 import { useAuth } from "../Context/useAuth";
 import { StudyGroup } from "../Models/StudyGroup";
-import CreateStudyGroupModal from "../Components/CreateStudyGroupModal";
-import StudyGroupInviteModal from "../Components/StudyGroupInviteModal";
+import CreateStudyGroupModal from "../components/modals/CreateStudyGroupModal";
+import StudyGroupInviteModal from "../components/modals/StudyGroupInviteModal";
 import { useQuery } from "react-query";
 import {
   getStudyGroups,
   getUpcomingGroupSessions,
 } from "../endpoints/StudyGroups";
-import SessionSchedulingModal from "../Components/SessionSchedulingModal";
+import SessionSchedulingModal from "../components/modals/SessionSchedulingModal";
 import { FaCalendar } from "react-icons/fa6";
 import { FaUserGroup } from "react-icons/fa6";
 import { ListGroup } from "react-bootstrap";

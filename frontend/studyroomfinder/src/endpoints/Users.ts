@@ -1,9 +1,8 @@
 import axios from "axios"
-import { API_URL } from "../apiRoute"
 
 export const getAllUsers = async (user_id: number) => {
     try {
-        const res = await axios.get(`${API_URL}/users/getAllUsers/${user_id}`,{
+        const res = await axios.get(`${import.meta.env.VITE_API_URL}/users/getAllUsers/${user_id}`,{
             withCredentials: true
         })
         return res.data

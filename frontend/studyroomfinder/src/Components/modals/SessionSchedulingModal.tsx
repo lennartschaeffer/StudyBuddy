@@ -1,7 +1,6 @@
 import React, { useState } from "react";
-import { Modal, Button, ToastContainer, Form } from "react-bootstrap";
 import { QueryClientProvider, useMutation, useQuery, useQueryClient } from "react-query";
-import { createGroupStudySession } from "../endpoints/StudyGroups";
+import { createGroupStudySession } from "../../endpoints/StudyGroups";
 import { toast } from "react-toastify";
 
 interface SessionSchedulingModalProps {

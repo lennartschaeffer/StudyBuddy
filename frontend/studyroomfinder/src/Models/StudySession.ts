@@ -15,6 +15,7 @@ export type SoloStudySession = {
   user_id: number;
   checklist_id: number;
   tasks: Task[];
+  totalTime: string | undefined;
 };
 
 export type GroupStudySession = {
@@ -26,6 +27,7 @@ export type GroupStudySession = {
     end_time: string;
     studygroup_id: number;
     members: Buddy[] | undefined;
+    totalTime: string | undefined;
     group_studysession_id: number;
 }
 

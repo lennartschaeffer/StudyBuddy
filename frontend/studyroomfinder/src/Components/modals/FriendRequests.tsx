@@ -7,18 +7,18 @@ import {
   Tab,
   Tabs,
 } from "react-bootstrap";
-import { useAuth } from "../Context/useAuth";
+import { useAuth } from "../../Context/useAuth";
 import { IoPersonCircleSharp } from "react-icons/io5";
 import { toast } from "react-toastify";
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { Friend } from "../Models/RequestsAndInvites";
-import { useGetFriendsAndInvites } from "../Context/useGetFriendsAndInvites";
+import { Friend } from "../../Models/RequestsAndInvites";
+import { useGetFriendsAndInvites } from "../../Context/useGetFriendsAndInvites";
 
 import {
   removeFriend,
   respondToFriendRequest,
   respondToGroupInvite,
-} from "../endpoints/FriendRequests";
+} from "../../endpoints/FriendRequests";
 
 interface FriendRequestProps {
   show: boolean;

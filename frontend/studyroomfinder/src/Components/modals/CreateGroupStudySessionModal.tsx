@@ -6,9 +6,9 @@ import {
   useQuery,
   useQueryClient,
 } from "react-query";
-import { createGroupStudySession } from "../endpoints/StudyGroups";
+import { createGroupStudySession } from "../../endpoints/StudyGroups";
 import { toast } from "react-toastify";
-import { useGetStudyGroups } from "../Context/useGetStudyGroups";
+import { useGetStudyGroups } from "../../Context/useGetStudyGroups";
 
 interface CreateGroupStudySessionModalProps {
   show: boolean;

@@ -2,7 +2,6 @@ import React, { createContext, useEffect, useState } from "react";
 import { UserProfile } from "../Models/User";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { API_URL } from "../apiRoute";
 import { toast } from "react-toastify";
 
 
@@ -31,7 +30,7 @@ export const UserProvider = ({ children }: Props) => {
 
   const fetchUser = async () => {
     try {
-      const res = await axios.get(`${API_URL}/auth/me`, {
+      const res = await axios.get(`${import.meta.env.VITE_API_URL}/auth/me`, {
         withCredentials: true,
       });
       const user: UserProfile = {
@@ -72,7 +71,7 @@ export const UserProvider = ({ children }: Props) => {
     email: string
   ) => {
     await axios
-      .post(`${API_URL}/auth/signup`, {
+      .post(`${import.meta.env.VITE_API_URL}/auth/signup`, {
         username: username,
         password: password,
         first_name: firstName,
@@ -85,7 +84,7 @@ export const UserProvider = ({ children }: Props) => {
       })
       .catch((err) => {
         console.log(err);
-        toast.error("Username or email already exists.");
+        toast.error(err.response.data);
       });
   };
 
@@ -93,7 +92,7 @@ export const UserProvider = ({ children }: Props) => {
     axios.defaults.withCredentials = true;
     try {
       const res = await axios
-      .post(`${API_URL}/auth/login`, {
+      .post(`${import.meta.env.VITE_API_URL}/auth/login`, {
         email: email,
         password: password,
       })
@@ -114,7 +113,7 @@ export const UserProvider = ({ children }: Props) => {
   const logout = async () => {
     
     await axios
-      .post(`${API_URL}/auth/logout`, {}, { withCredentials: true })
+      .post(`${import.meta.env.VITE_API_URL}/auth/logout`, {}, { withCredentials: true })
       .then((res) => {
         console.log(res);
         setUser(null);

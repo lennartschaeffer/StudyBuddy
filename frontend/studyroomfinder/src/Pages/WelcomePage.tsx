@@ -1,4 +1,4 @@
-import NavBar from "../Components/NavBar";
+import NavBar from "../components/NavBar";
 import "./HomePage.css";
 import { Link } from "react-router-dom";
 const WelcomePage = () => {

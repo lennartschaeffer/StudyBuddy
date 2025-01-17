@@ -1,5 +1,4 @@
 import "./HomePage.css";
-import NavBar from "../Components/NavBar";
 import { useState } from "react";
 import { useAuth } from "../Context/useAuth";
 import { SoloStudySession } from "../Models/StudySession";

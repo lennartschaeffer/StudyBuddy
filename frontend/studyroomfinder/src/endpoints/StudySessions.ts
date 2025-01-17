@@ -1,11 +1,10 @@
 import axios from "axios";
-import { API_URL } from "../apiRoute";
 import { SoloStudySession, Task } from "../Models/StudySession";
 import { GroupStudySession } from "../Models/StudySession";
 
 export const getActiveSession = async (userId: number) => {
   const res = await axios.get(
-    `${API_URL}/studysessions/activeStudySession/${userId}`,{
+    `${import.meta.env.VITE_API_URL}/studysessions/activeStudySession/${userId}`,{
       withCredentials: true
     }
   );
@@ -29,6 +28,7 @@ export const getActiveSession = async (userId: number) => {
       user_id: res.data.soloSession.user_id,
       checklist_id: res.data.soloSession.checklist_id,
       tasks: tasks,
+      totalTime: undefined,
     };
   }
   if (res.data.groupSessions && res.data.groupSessions.length > 0) {
@@ -48,7 +48,9 @@ export const getActiveSession = async (userId: number) => {
 
 export const completeTask = async (task: Task) => {
   const res = await axios.put(
-    `${API_URL}/studysessions/completeTask/${task?.task_id}`,{
+    `${import.meta.env.VITE_API_URL}/studysessions/completeTask/${task?.task_id}`,
+    {},
+    {
       withCredentials: true
     }
   );
@@ -64,7 +66,9 @@ export const completeActiveStudySession = async (
   }
   try {
     const res = await axios.put(
-      `${API_URL}/studysessions/completeActiveStudySession/${session_id}/${session_type}`,{
+      `${import.meta.env.VITE_API_URL}/studysessions/completeActiveStudySession/${session_id}/${session_type}`,
+      {},
+      {
         withCredentials: true
       }
     );
@@ -79,11 +83,27 @@ export const getRecentStudySessions = async (userId: number) => {
   console.log("Fetching recent study sessions");
   try {
     const res = await axios.get(
-      `${API_URL}/studysessions/recentStudySessions/${userId}`,
+      `${import.meta.env.VITE_API_URL}/studysessions/recentStudySessions/${userId}`,
       {
         withCredentials: true,
       }
     );
+    if(res.data.userSessions){
+      res.data.userSessions.forEach((session: SoloStudySession) => {
+        let startVsEndTime = new Date(session.end_time).getTime() - new Date(session.start_time).getTime();
+        let hours = Math.floor(startVsEndTime / (1000 * 60 * 60));
+        let minutes = Math.floor((startVsEndTime % (1000 * 60 * 60)) / (1000 * 60));
+        session.totalTime = hours + "h " + minutes + "m";
+      });
+    }
+    if(res.data.groupSessions){
+      res.data.groupSessions.forEach((session: GroupStudySession) => {
+        let startVsEndTime = new Date(session.end_time).getTime() - new Date(session.start_time).getTime();
+        let hours = Math.floor(startVsEndTime / (1000 * 60 * 60));
+        let minutes = Math.floor((startVsEndTime % (1000 * 60 * 60)) / (1000 * 60));
+        session.totalTime = hours + "h " + minutes + "m";
+      });
+    }
     console.log(res.data);
     return res.data;
   } catch (error) {
@@ -101,7 +121,7 @@ export const completeActiveSessionEarly = async (
       throw new Error("Missing required fields");
     }
     const res = await axios.put(
-      `${API_URL}/studysessions/completeActiveStudySessionEarly/${sessionId}/${sessionType}`,{
+      `${import.meta.env.VITE_API_URL}/studysessions/completeActiveStudySessionEarly/${sessionId}/${sessionType}`,{
         withCredentials: true
       }
     );

@@ -1,14 +1,24 @@
-import NavBar from "../Components/NavBar";
+import NavBar from "../components/NavBar";
 import "./HomePage.css";
 import { useAuth } from "../Context/useAuth";
 import { Link } from "react-router-dom";
 import { useQuery } from "react-query";
 import { getRecentStudySessions } from "../endpoints/StudySessions";
 import { GroupStudySession, SoloStudySession } from "../Models/StudySession";
-import { ListGroup, Spinner } from "react-bootstrap";
-import { FaMapMarker, FaMapMarkerAlt, FaSearch } from "react-icons/fa";
-import { IoSchoolOutline } from "react-icons/io5";
-import { FaUser, FaUserGroup } from "react-icons/fa6";
+import { BookOpen, MapPin, Users, UserPlus, Clock } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { log } from "console";
+
 const HomePage = () => {
   const { user } = useAuth();
   const { data: recentStudySessions, isLoading } = useQuery(
@@ -19,192 +29,116 @@ const HomePage = () => {
       onError: (error) => {
         console.error("Failed to fetch recent study sessions:", error);
       },
-      onSuccess: (data) => {
-      },
+      onSuccess: (data) => {},
     }
   );
-
+  console.log(recentStudySessions);
   return (
-    <div className="Main vh-100 ">
-        <div className="container d-flex flex-column pt-5 overflow-hidden vh-100">
-          <h1 className="text-center text-light mt-5">
-            Welcome Back {user?.first_name}! 📚
-          </h1>
-          <div className="row mt-5">
-            <div className="col-8">
-              <div className="row">
-                <div className="col-6 mb-2">
-                  <div
-                    className="card h-100"
-                    style={{ boxShadow: "10px 10px 5px 3px rgba(0,0,0,0.75)" }}
-                  >
-                    <div className="card-body">
-                      <h4 className="m-0">
-                        <strong>Start a Study Session</strong>
-                      </h4>
-                      <p className="text-muted">
-                        Begin a solo or group study session
-                      </p>
-                      <Link
-                        to={"/studysession"}
-                        className="btn btn-dark d-block"
-                      >
-                        <IoSchoolOutline className="m-2" />
-                        <strong>Start</strong>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-6 mb-2">
-                  <div
-                    className="card h-100"
-                    style={{ boxShadow: "10px 10px 5px 3px rgba(0,0,0,0.75)" }}
-                  >
-                    <div className="card-body">
-                      <h4 className="m-0">
-                        <strong>Find a Spot</strong>{" "}
-                      </h4>
-                      <p className="text-muted">
-                        Discover nearby places to study
-                      </p>
-                      <Link to={"/map"} className="btn btn-dark d-block">
-                        <FaMapMarkerAlt className="m-2" />
-                        <strong>View Map</strong>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-6">
-                  <div
-                    className="card h-100 "
-                    style={{ boxShadow: "10px 10px 5px 3px rgba(0,0,0,0.75)" }}
-                  >
-                    <div className="card-body">
-                      <h4 className="m-0">
-                        <strong>Create A Group</strong>
-                      </h4>
-                      <p className="text-muted">
-                        Start a study group with friends
-                      </p>
-                      <Link to={"/home"} className="btn btn-dark d-block">
-                        <FaUserGroup className="m-2" />
-                        <strong>Connect with Friends</strong>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-                <div className="col-6">
-                  <div
-                    className="card h-100 "
-                    style={{ boxShadow: "10px 10px 5px 3px rgba(0,0,0,0.75)" }}
-                  >
-                    <div className="card-body">
-                      <h4 className="m-0">
-                        <strong>Find StudyBuddies</strong>
-                      </h4>
-                      <p className="text-muted">Connect with other students</p>
-                      <Link to={"/home"} className="btn btn-dark d-block">
-                        <FaSearch className="m-2" />
-                        <strong>Search Buddies</strong>
-                      </Link>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div className="col-4">
-              <div className="card">
-                <div className="card-body ">
-                  <h3>
-                    <strong>Recent Study Sessions</strong>
-                  </h3>
-                  <p className="text-muted">View your recent study sessions</p>
-                  {
-                    <ListGroup className="overflow-scroll">
-                      {
-                        isLoading && <Spinner variant="dark" animation="grow" />
-                      }
-                      {recentStudySessions?.userSessions.length > 0 ? (
-                        recentStudySessions?.userSessions.map(
-                          (session: SoloStudySession, id: number) => (
-                            <ListGroup.Item key={id}>
-                              <div className="row">
-                                <div className="col-12 d-flex justify-content-between">
-                                  <b>{session.session_name}</b>
-                                  <FaUser />
-                                </div>
-                                <div className="col-6">
-                                  <p
-                                    className="text-muted"
-                                    style={{ fontSize: "12px" }}
-                                  >
-                                    {new Date(session.start_time)
-                                      .toLocaleString("en-US", {
-                                        month: "numeric",
-                                        day: "numeric",
-                                        year: "numeric",
-                                        hour: "2-digit",
-                                        minute: "2-digit",
-                                        hour12: false,
-                                      })
-                                      .replace(",", " at")}
-                                  </p>
-                                </div>
-                              </div>
-                            </ListGroup.Item>
-                          )
-                        )
-                      ) : (
-                        <h6 className="card-text">No recent solo sessions.</h6>
-                      )}
-                      {recentStudySessions &&
-                      recentStudySessions.groupSessions.length > 0 ? (
-                        recentStudySessions.groupSessions.map(
-                              (session: GroupStudySession, id: number) => (
-                                <ListGroup.Item key={id}>
-                                  <div className="row">
-                                    <div className="col-12 d-flex justify-content-between">
-                                      <b>{session.session_name}</b>
-                                      <FaUserGroup />
-                                    </div>
-                                    <div className="col-12">
-                                      <p className="card-text m-0 text-success">
-                                        <strong>
-                                          {session?.studygroups?.group_name}
-                                        </strong>
-                                      </p>
-                                      <p
-                                        className="text-muted m-0"
-                                        style={{ fontSize: "12px" }}
-                                      >
-                                        {new Date(session.start_time)
-                                          .toLocaleString("en-US", {
-                                            month: "numeric",
-                                            day: "numeric",
-                                            year: "numeric",
-                                            hour: "2-digit",
-                                            minute: "2-digit",
-                                            hour12: false,
-                                          })
-                                          .replace(",", " at")}
-                                      </p>
-                                    </div>
-                                  </div>
-                                </ListGroup.Item>
-                              )
-                            )
-                        )
-                       : (
-                        <h6 className="card-text p-2">No recent group sessions.</h6>
-                      )
-                      }
-                    </ListGroup>
-                  }
-                </div>
-              </div>
-            </div>
-          </div>
+    <div className="min-h-screen ">
+      <main className="container mx-auto px-4 py-8">
+        <h1 className="text-4xl font-bold mb-8">
+          Welcome Back {user?.first_name}!{" "}
+        </h1>
+
+        {/* Quick Action Buttons */}
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+          <Button
+            variant="outline"
+            className="flex flex-col items-center justify-center h-24 text-lg"
+          >
+            <BookOpen className="h-8 w-8 mb-2" />
+            Start Session
+          </Button>
+          <Button
+            variant="outline"
+            className="flex flex-col items-center justify-center h-24 text-lg"
+          >
+            <MapPin className="h-8 w-8 mb-2" />
+            Find Study Spots
+          </Button>
+          <Button
+            variant="outline"
+            className="flex flex-col items-center justify-center h-24 text-lg"
+          >
+            <Users className="h-8 w-8 mb-2" />
+            Create Study Group
+          </Button>
+          <Button
+            variant="outline"
+            className="flex flex-col items-center justify-center h-24 text-lg"
+          >
+            <UserPlus className="h-8 w-8 mb-2" />
+            Find Study Buddies
+          </Button>
         </div>
+
+        {/* Recent Study Sessions */}
+        <Card className="mb-8">
+          <CardHeader>
+            <CardTitle>Recent Study Sessions</CardTitle>
+            <CardDescription>
+              Your solo and group study activities
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Tabs defaultValue="solo">
+              <TabsList className="mb-4">
+                <TabsTrigger value="solo">Solo Sessions</TabsTrigger>
+                <TabsTrigger value="group">Group Sessions</TabsTrigger>
+              </TabsList>
+              <TabsContent value="solo">
+                <ScrollArea className="h-[300px]">
+                  {recentStudySessions?.userSessions?.map(
+                    (session: SoloStudySession, index: number) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between py-4 border-b last:border-b-0"
+                      >
+                        <div>
+                          <h3 className="font-semibold">
+                            {session.session_name}
+                          </h3>
+                        </div>
+                        <div className="flex items-center">
+                          <Clock className="h-4 w-4 mr-2" />
+                          <span>
+                            {session.totalTime}
+                          </span>
+                        </div>
+                      </div>
+                    )
+                  )}
+                </ScrollArea>
+              </TabsContent>
+              <TabsContent value="group">
+                <ScrollArea className="h-[300px]">
+                {recentStudySessions?.groupSessions?.map(
+                    (session: GroupStudySession, index: number) => (
+                      <div
+                        key={index}
+                        className="flex items-center justify-between py-4 border-b last:border-b-0"
+                      >
+                        <div>
+                          <h3 className="font-semibold">
+                            {session.session_name}
+                          </h3>
+                          <p className="text-sm text-muted-foreground">{session.studygroups?.group_name}</p>
+                        </div>
+                        <div className="flex items-center">
+                          <Clock className="h-4 w-4 mr-2" />
+                          <span>
+                            {session.totalTime}
+                          </span>
+                        </div>
+                      </div>
+                    )
+                  )}
+                </ScrollArea>
+              </TabsContent>
+            </Tabs>
+          </CardContent>
+        </Card>
+      </main>
     </div>
   );
 };

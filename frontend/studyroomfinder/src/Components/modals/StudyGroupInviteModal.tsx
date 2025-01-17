@@ -1,11 +1,11 @@
 import React, { useEffect, useState } from "react";
 import { Button, Form, ListGroupItem, Modal } from "react-bootstrap";
 import { toast, ToastContainer } from "react-toastify";
-import { useAuth } from "../Context/useAuth";
+import { useAuth } from "../../Context/useAuth";
 import { IoPersonCircleSharp } from "react-icons/io5";
-import { useGetFriendsAndInvites } from "../Context/useGetFriendsAndInvites";
+import { useGetFriendsAndInvites } from "../../Context/useGetFriendsAndInvites";
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { inviteToStudyGroup } from "../endpoints/StudyGroups";
+import { inviteToStudyGroup } from "../../endpoints/StudyGroups";
 
 interface StudyGroupInviteModalProps {
   name: string;
