@@ -1,7 +1,7 @@
 import { useState } from "react";
 import "./HomePage.css";
-import Button from "react-bootstrap/Button";
-import Form from "react-bootstrap/Form";
+// import Button from "react-bootstrap/Button";
+// import Form from "react-bootstrap/Form";
 import { useAuth } from "../Context/useAuth";
 import { toast, ToastContainer } from "react-toastify";
 
@@ -36,7 +36,7 @@ const RegistrationPage = () => {
                 Sign Up and Start Your Ideal Study Session.
               </p>
             </div>
-            <Form className="p-4">
+            {/* <Form className="p-4">
               <Form.Group className="mb-3" controlId="formBasicEmail">
                 <Form.Label className="">Email</Form.Label>
                 <Form.Control
@@ -80,7 +80,7 @@ const RegistrationPage = () => {
               <Button variant="dark" className="w-100" onClick={handleRegister}>
                 Register
               </Button>
-            </Form>
+            </Form> */}
           </div>
         </div>
       </div>

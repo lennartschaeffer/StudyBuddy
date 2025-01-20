@@ -1,6 +1,5 @@
 import axios from "axios";
 import { useEffect, useState } from "react";
-import { Form, InputGroup, ListGroup, Modal } from "react-bootstrap";
 import { IoLibrary } from "react-icons/io5";
 import { API_URL } from "../../apiRoute";
 import { useAuth } from "../../Context/useAuth";
@@ -95,7 +94,6 @@ const StudySessionModal = () => {
   return (
     <Dialog>
       <DialogTrigger asChild>
-        
         <Button variant="outline" className="h-24 text-lg">
         <BookOpen/>
           Start Solo Session

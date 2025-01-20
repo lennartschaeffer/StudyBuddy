@@ -18,7 +18,11 @@ import { GroupStudySession, SoloStudySession } from "../Models/StudySession";
 import ActiveSoloStudySession from "../components/ActiveSoloStudySession";
 import ActiveGroupStudySession from "../components/ActiveGroupStudySession";
 import { Button } from "@/components/ui/button";
-import { BookOpen, Users } from "lucide-react";
+import { BookOpen, Clock, Users } from "lucide-react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { ScrollArea } from "@radix-ui/react-scroll-area";
+import { Progress } from "@/components/ui/progress";
+import { LoadingSymbol } from "@/components/LoadingSymbol";
 
 const StudySessionPage = () => {
   const [showSessionModal, setShowSessionModal] = useState(false);
@@ -52,7 +56,6 @@ const StudySessionPage = () => {
     }
   );
 
-
   useEffect(() => {
     if (activeStudySession?.soloSession) {
       const interval = setInterval(() => {
@@ -79,165 +82,85 @@ const StudySessionPage = () => {
   return (
     <div className="min-h-screen flex items-center justify-center">
       <main className="container px-4 ">
-       {
-        activeStudySession?.soloSession ? (
-          <ActiveSoloStudySession soloSession={activeStudySession.soloSession} timeLeft={timeLeft} user={user!}/>
-        ) : isLoading ? (
-          <p>Loading..</p>
+        {activeStudySession?.soloSession ? (
+          <ActiveSoloStudySession
+            soloSession={activeStudySession.soloSession}
+            timeLeft={timeLeft}
+            user={user!}
+          />
+        ) :  isLoading ? (
+          <div className="w-full flex items-center justify-center">
+ <LoadingSymbol />
+          </div>
+         
         ) : joinedActiveGroupSession ? (
-          <p>joined grouo</p>
+          <ActiveGroupStudySession groupSession={joinStudyGroupInfo!} user={user!} onLeave={() => setJoinedActiveGroupSession(false)}/>
         ) : (
           <div className="grid grid-cols-2 md:grid-cols-2 gap-4 mb-8">
-           <StudySessionModal />
-          <Button
-            variant="outline"
-            className="flex flex-col items-center justify-center h-24 text-lg"
-          >
-            <Users className="h-8 w-8 mb-2" />
-            Start Group Session
-          </Button>
-        </div>
-        )
-       }
-        
-       
+            <StudySessionModal />
+            <CreateGroupStudySessionModal />
+            <Card className="w-full max-w-4xl mx-auto bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+              <CardHeader>
+                <CardTitle className="text-xl font-semibold">
+                  Active Group Study Sessions
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <ScrollArea className=" pr-4">
+                  <div className="space-y-4">
+                    {activeStudySession?.groupSessions.map((session, id) => (
+                      <Card
+                        key={id}
+                        className="p-4 transition-colors hover:bg-muted/50"
+                      >
+                        <div className="flex items-center justify-between gap-4">
+                          <div className="flex-1 space-y-1">
+                            <div className="flex items-center gap-2">
+                              <BookOpen className="h-4 w-4" />
+                              <h3 className="font-medium">
+                                {session.group_name}
+                              </h3>
+                            </div>
+                            <div className="flex items-center gap-4 text-sm text-muted-foreground">
+                              <div className="flex items-center gap-1">
+                                <Users className="h-4 w-4" />
+                                <span>
+                                  {session.members?.length} participants
+                                </span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-4 w-4" />
+                                <span>
+                                  {format(parseISO(session.start_time), "HH:mm")} - {format(parseISO(session.end_time), "HH:mm")}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                          <Button
+                            onClick={() => {
+                              setJoinStudyGroupInfo(session);
+                              setJoinedActiveGroupSession(true);
+                            }}
+                            variant="default"
+                          >
+                            Join Session
+                          </Button>
+                        </div>
+                      </Card>
+                    ))}
+                    {
+                      activeStudySession?.groupSessions.length === 0 && (
+                        <p className="text-center">No active group sessions.</p>
+                      )
+                    }
+                  </div>
+                </ScrollArea>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </main>
     </div>
-    // <div className="Main h-100">
-    //   {activeStudySession?.soloSession ? (
-    //     <ActiveSoloStudySession
-    //       soloSession={activeStudySession.soloSession}
-    //       timeLeft={timeLeft}
-    //       user={user!}
-    //     />
-    //   ) : isLoading ? (
-    //     <div className="container h-100 d-flex flex-column justify-content-center align-items-center">
-    //       <Spinner variant="light" animation="grow" />
-    //     </div>
-        
-    //   ) : joinedActiveGroupSession ? (
-    //     <ActiveGroupStudySession
-    //       groupSession={joinStudyGroupInfo!}
-    //       user={user!}
-    //     />
-    //   ) : (
-    //     <div className="container h-100 d-flex flex-column justify-content-center align-items-center">
-    //       <div className="row w-100 ">
-    //         <div
-    //           className={`${
-    //             activeStudySession?.groupSessions &&
-    //             activeStudySession.groupSessions.length > 0
-    //               ? "col-5 flex-column"
-    //               : "col-12 d-flex"
-    //           } d-flex  gap-3 justify-content-center`}
-    //         >
-    //           <div className="card h-100">
-    //             <div className="card-body">
-    //               <h3>
-    //                 <strong>Solo Study Session</strong>
-    //               </h3>
-    //               <p className="text-muted">
-    //                 Focus on your individual study goals
-    //               </p>
-    //               <button
-    //                 className="btn btn-dark d-block w-100"
-    //                 onClick={() => setShowSessionModal(true)}
-    //               >
-    //                 <BiUser className="mr-1" />
-    //                 Start Solo Session
-    //               </button>
-    //             </div>
-    //           </div>
-    //           <div className="card h-100">
-    //             <div className="card-body">
-    //               <h3>
-    //                 <strong>Group Study Session</strong>
-    //               </h3>
-    //               <p className="text-muted">
-    //                 Collaborate with your study buddies
-    //               </p>
-    //               <button
-    //                 className="btn btn-dark d-block w-100"
-    //                 onClick={() => setShowGroupSessionModal(true)}
-    //               >
-    //                 <BiGroup className="mr-1" />
-    //                 Start Group Session
-    //               </button>
-    //             </div>
-    //           </div>
-    //         </div>
-    //         {activeStudySession?.groupSessions &&
-    //           activeStudySession.groupSessions.length > 0 && (
-    //             <div className="col-5">
-    //               <div className="card">
-    //                 <div className="card-body">
-    //                   <h3>
-    //                     <strong>Active Group Study Sessions</strong>
-    //                   </h3>
-    //                   <p className="text-muted">
-    //                     View your active group sessions
-    //                   </p>
-    //                   <ListGroup>
-    //                     {activeStudySession.groupSessions.map(
-    //                       (groupSession: GroupStudySession, id: number) => (
-    //                         <ListGroupItem key={id}>
-    //                           <div className="row">
-    //                             <div className="col-7 d-flex flex-column align-items-start">
-    //                               <h5 className="m-0">
-    //                                 <b>{groupSession.group_name}</b>
-    //                               </h5>
-    //                               <p className="text-muted">
-    //                                 {groupSession.session_name}
-    //                               </p>
-    //                             </div>
-    //                             <div className="col-5 d-flex flex-column">
-    //                               <div className="d-flex justify-content-center gap-2">
-    //                                 <p className="text-muted text-center m-0">
-    //                                   {format(
-    //                                     parseISO(groupSession.start_time),
-    //                                     "HH:mm"
-    //                                   )}
-    //                                   -
-    //                                   {format(
-    //                                     parseISO(groupSession.end_time),
-    //                                     "HH:mm"
-    //                                   )}
-    //                                 </p>
-    //                                 <FaClock className="mt-1" />
-    //                               </div>
-    //                               <button
-    //                                 className="btn btn-sm btn-success mt-2"
-    //                                 onClick={() => {
-    //                                   setJoinStudyGroupInfo(groupSession);
-    //                                   setJoinedActiveGroupSession(true);
-    //                                 }}
-    //                               >
-    //                                 <strong>Join</strong>
-    //                               </button>
-    //                             </div>
-    //                           </div>
-    //                         </ListGroupItem>
-    //                       )
-    //                     )}
-    //                   </ListGroup>
-    //                 </div>
-    //               </div>
-    //             </div>
-    //           )}
-    //       </div>
-    //     </div>
-    //   )}
-    //   <ToastContainer />
-    //   <StudySessionModal
-    //     show={showSessionModal}
-    //     onClose={() => setShowSessionModal(false)}
-    //     onStartSession={() => refetch()}
-    //   />
-    //   <CreateGroupStudySessionModal
-    //     show={showGroupSessionModal}
-    //     onClose={() => setShowGroupSessionModal(false)}
-    //   />
-    // </div>
   );
 };
 

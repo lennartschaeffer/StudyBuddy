@@ -1,10 +1,5 @@
-import React, { useEffect, useState } from "react";
 import { Navigate, useLocation } from "react-router-dom";
 import { useAuth } from "../Context/useAuth";
-import SideBar from "../components/SideBar";
-import NavBar from "../components/NavBar";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { Separator } from "@radix-ui/react-separator";
 import Page from "@/app/dashboard/page";
 
 type Props = { children: React.ReactNode };

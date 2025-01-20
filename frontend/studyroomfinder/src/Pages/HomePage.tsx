@@ -1,11 +1,10 @@
-import NavBar from "../components/NavBar";
 import "./HomePage.css";
 import { useAuth } from "../Context/useAuth";
 import { Link } from "react-router-dom";
 import { useQuery } from "react-query";
 import { getRecentStudySessions } from "../endpoints/StudySessions";
 import { GroupStudySession, SoloStudySession } from "../Models/StudySession";
-import { BookOpen, MapPin, Users, UserPlus, Clock } from "lucide-react";
+import { BookOpen, MapPin, Users, UserPlus, Clock, Loader } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -16,8 +15,7 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { log } from "console";
+import { LoadingSymbol } from "@/components/LoadingSymbol";
 
 const HomePage = () => {
   const { user } = useAuth();
@@ -42,34 +40,42 @@ const HomePage = () => {
 
         {/* Quick Action Buttons */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-          <Button
-            variant="outline"
-            className="flex flex-col items-center justify-center h-24 text-lg"
-          >
-            <BookOpen className="h-8 w-8 mb-2" />
-            Start Session
-          </Button>
-          <Button
-            variant="outline"
-            className="flex flex-col items-center justify-center h-24 text-lg"
-          >
-            <MapPin className="h-8 w-8 mb-2" />
-            Find Study Spots
-          </Button>
-          <Button
-            variant="outline"
-            className="flex flex-col items-center justify-center h-24 text-lg"
-          >
-            <Users className="h-8 w-8 mb-2" />
-            Create Study Group
-          </Button>
-          <Button
-            variant="outline"
-            className="flex flex-col items-center justify-center h-24 text-lg"
-          >
-            <UserPlus className="h-8 w-8 mb-2" />
-            Find Study Buddies
-          </Button>
+          <Link to={"/studysession"}>
+            <Button
+              variant="outline"
+              className="flex flex-col items-center justify-center h-24 w-full text-lg"
+            >
+              <BookOpen className="h-8 w-8 mb-2" />
+              Start Session
+            </Button>
+          </Link>
+          <Link to={"/map"}>
+            <Button
+              variant="outline"
+              className="flex flex-col items-center justify-center h-24 text-lg w-full"
+            >
+              <MapPin className="h-8 w-8 mb-2" />
+              Find Study Spots
+            </Button>
+          </Link>
+          <Link to={"/studygroups"}>
+            <Button
+              variant="outline"
+              className="flex flex-col items-center justify-center h-24 text-lg w-full"
+            >
+              <Users className="h-8 w-8 mb-2" />
+              Create Study Group
+            </Button>
+          </Link>
+          <Link to={"/studybuddies"}>
+            <Button
+              variant="outline"
+              className="flex flex-col items-center justify-center h-24 text-lg w-full"
+            >
+              <UserPlus className="h-8 w-8 mb-2" />
+              Find Study Buddies
+            </Button>
+          </Link>
         </div>
 
         {/* Recent Study Sessions */}
@@ -88,6 +94,9 @@ const HomePage = () => {
               </TabsList>
               <TabsContent value="solo">
                 <ScrollArea className="h-[300px]">
+                  {isLoading && (
+                    <LoadingSymbol/>
+                  )}
                   {recentStudySessions?.userSessions?.map(
                     (session: SoloStudySession, index: number) => (
                       <div
@@ -101,9 +110,7 @@ const HomePage = () => {
                         </div>
                         <div className="flex items-center">
                           <Clock className="h-4 w-4 mr-2" />
-                          <span>
-                            {session.totalTime}
-                          </span>
+                          <span>{session.totalTime}</span>
                         </div>
                       </div>
                     )
@@ -112,7 +119,7 @@ const HomePage = () => {
               </TabsContent>
               <TabsContent value="group">
                 <ScrollArea className="h-[300px]">
-                {recentStudySessions?.groupSessions?.map(
+                  {recentStudySessions?.groupSessions?.map(
                     (session: GroupStudySession, index: number) => (
                       <div
                         key={index}
@@ -122,13 +129,13 @@ const HomePage = () => {
                           <h3 className="font-semibold">
                             {session.session_name}
                           </h3>
-                          <p className="text-sm text-muted-foreground">{session.studygroups?.group_name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {session.studygroups?.group_name}
+                          </p>
                         </div>
                         <div className="flex items-center">
                           <Clock className="h-4 w-4 mr-2" />
-                          <span>
-                            {session.totalTime}
-                          </span>
+                          <span>{session.totalTime}</span>
                         </div>
                       </div>
                     )

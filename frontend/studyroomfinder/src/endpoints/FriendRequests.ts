@@ -1,12 +1,11 @@
 import axios from "axios";
-import { API_URL } from "../apiRoute";
 import { FriendRequest, GroupInvite } from "../Models/RequestsAndInvites";
 import { Buddy } from "../Models/StudyBuddy";
 import { fr } from "date-fns/locale";
 
 export const getFriendRequestsAndGroupInvites = async (userId: number) => {
   try {
-    const res = await axios.get(`${API_URL}/friends/${userId}`,{
+    const res = await axios.get(`${import.meta.env.VITE_API_URL}/friends/${userId}`,{
       withCredentials: true
     });
     console.log(res.data);
@@ -56,7 +55,7 @@ export const respondToFriendRequest = async (
   response: string
 ) => {
   try {
-    const res = await axios.post(`${API_URL}/friends/respond`, {
+    const res = await axios.post(`${import.meta.env.VITE_API_URL}/friends/respond`, {
       request_id: request_id,
       response: response,
     },{
@@ -77,7 +76,7 @@ export const respondToGroupInvite = async (
 ) => {
   try {
     console.log(studygroup_id, invite_id, response, userId);
-    const res = await axios.post(`${API_URL}/studygroups/respond`, {
+    const res = await axios.post(`${import.meta.env.VITE_API_URL}/studygroups/respond`, {
       studygroup_id: studygroup_id,
       studygroup_invite_id: invite_id,
       response: response,
@@ -95,7 +94,7 @@ export const respondToGroupInvite = async (
 export const removeFriend = async (friend_id: number, userId: number) => {
   try {
     const res = await axios.delete(
-      `${API_URL}/friends/removeFriend/${userId}/${friend_id}`,{
+      `${import.meta.env.VITE_API_URL}/friends/removeFriend/${userId}/${friend_id}`,{
         withCredentials: true
       }
     );

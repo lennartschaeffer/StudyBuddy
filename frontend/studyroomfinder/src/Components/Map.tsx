@@ -10,7 +10,6 @@ import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import { useEffect, useState } from "react";
 import axios from "axios";
 import { Icon } from "leaflet";
-import { Spinner } from "react-bootstrap";
 import { useAuth } from "../Context/useAuth";
 import { StudySpot, Location } from "../Models/Map";
 import { StudySessionMapInfo } from "../Models/StudySession";
@@ -158,7 +157,7 @@ const Map: React.FC<MapProps> = ({ studySessionMapInfo }) => {
     <>
       {loading ? (
         <div className="d-flex justify-content-center align-items-center vh-100">
-          <Spinner animation="grow" variant="light" />
+          {/* <Spinner animation="grow" variant="light" /> */}
         </div>
       ) : (
         <MapContainer

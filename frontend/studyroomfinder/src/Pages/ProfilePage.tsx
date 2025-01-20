@@ -1,14 +1,10 @@
 import "./HomePage.css";
-import { useState } from "react";
-import { useAuth } from "../Context/useAuth";
-import { SoloStudySession } from "../Models/StudySession";
-import { BiUserCircle } from "react-icons/bi";
-import { CiSettings } from "react-icons/ci";
-import { IoMdTime } from "react-icons/io";
-import { IoBookOutline } from "react-icons/io5";
-import { FaUserGroup } from "react-icons/fa6";
 import { useQuery } from "react-query";
 import { getUserProfileInfo } from "../endpoints/Profile";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
+import { Clock, BookOpen, Target, Badge, Award } from "lucide-react";
+import { useAuth } from "@/Context/useAuth";
 
 const ProfilePage = () => {
   const { user, logout } = useAuth();
@@ -26,96 +22,97 @@ const ProfilePage = () => {
   
 
   return (
-    <div className="Main vh-100">
-      <div className="h-100">
-        <div className="container pt-5">
-          <div className="row w-100 d-flex justify-content-center">
-            <div className="col-12">
-            <div className="card w-100">
-              <div className="card-body">
-                <div className="row">
-                  <div className="col-1">
-                    <BiUserCircle size={80} />
-                  </div>
-                  <div className="col-6">
-                    <h3 className="m-0">
-                      <strong>
-                        {user?.first_name} {user?.last_name}
-                      </strong>
-                    </h3>
-                    <p className="text-muted m-0">
-                      <strong>{user?.degree ?? "N/A"}</strong>
-                    </p>
-                    <p className="text-muted">{user?.university ?? "Not Enrolled"}</p>
-                  </div>
-                  <div className="col-5 d-flex justify-content-end align-items-center">
-                    <button className="btn btn-dark">
-                      Edit Profile <CiSettings />
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </div>
-            </div>
-            
-          </div>
-          <div className="row w-100 mt-3 gap-3 d-flex justify-content-center">
-            <div className="col-4 p-0">
-              <div className="card w-100 h-100">
-                <div className="card-body">
-                  <div className="card-text w-100 d-flex justify-content-between align-items-center">
-                    <strong>Total Study Time</strong>
-                    <IoMdTime />
-                  </div>
-                  <h4>
-                    <strong>{userProfileInfo?.totalStudyTime ?? "0h"}</strong>
-                  </h4>
-                  <p className="text-muted">
-                    To become a master, you must practice.
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="col-3 p-0">
-              <div className="card w-100 h-100">
-                <div className="card-body">
-                  <div className="card-text w-100 d-flex justify-content-between align-items-center">
-                    <strong>Study Sessions</strong>
-                    <IoBookOutline />
-                  </div>
-                  <h4>
-                    <strong>{userProfileInfo?.numberOfStudySessions ?? 0}</strong>
-                  </h4>
-                  <p className="text-muted">This Month</p>
-                </div>
-              </div>
-            </div>
-            <div className="col-4 p-0">
-              <div className="card w-100 h-100">
-                <div className="card-body">
-                  <div className="card-text w-100 d-flex justify-content-between align-items-center">
-                    <strong>Study Groups Joined</strong>
-                    <FaUserGroup />
-                  </div>
-                  <h4>
-                    <strong>{userProfileInfo?.numberOfStudyGroups ?? 0}</strong>
-                  </h4>
-                  <p className="text-muted">Studying is better with friends.</p>
-                </div>
-              </div>
-            </div>
-          </div>
-          {/* <div className="row w-100 mt-3">
-            <div className="card">
-              <div className="card-body">
-                <h2>
-                  <strong>My Study Sessions</strong>
-                </h2>
-              </div>
-            </div>
-          </div> */}
+    <div className="container mx-auto px-4 py-8">
+      <header className="mb-8 flex flex-col sm:flex-row items-center sm:items-start gap-4">
+        <Avatar className="w-24 h-24">
+          <AvatarImage src={""} alt={"avatar"} />
+          <AvatarFallback>{user?.first_name.split(' ').map(n => n[0]).join('')}</AvatarFallback>
+        </Avatar>
+        <div className="text-center sm:text-left">
+          <h1 className="text-3xl font-bold">{user?.first_name} {user?.last_name}</h1>
+          <p className="text-gray-500">@{user?.username}</p>
         </div>
-      </div>
+      </header>
+
+      <main className="grid gap-8 md:grid-cols-2">
+        <section>
+          <h2 className="text-2xl font-semibold mb-4">Study Statistics</h2>
+          <div className="grid gap-4">
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Total Study Hours</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{userProfileInfo?.totalStudyTime}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Completed Sessions</CardTitle>
+                <BookOpen className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">{userProfileInfo?.numberOfStudyGroups}</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Average Session Length</CardTitle>
+                <Clock className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold"> hours</div>
+              </CardContent>
+            </Card>
+            <Card>
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                <CardTitle className="text-sm font-medium">Current Study Streak</CardTitle>
+                <Target className="h-4 w-4 text-muted-foreground" />
+              </CardHeader>
+              <CardContent>
+                <div className="text-2xl font-bold">7 days</div>
+              </CardContent>
+            </Card>
+          </div>
+        </section>
+
+        <section>
+          <h2 className="text-2xl font-semibold mb-4">Weekly Goal Progress</h2>
+          <Card>
+            <CardHeader>
+              <CardTitle>Study Hours This Week</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                {/* <Progress value={(user.weeklyProgress / user.weeklyGoal) * 100} />
+                <p className="text-sm text-gray-500">
+                  {user.weeklyProgress} of {user.weeklyGoal} hours
+                </p> */}
+              </div>
+            </CardContent>
+          </Card>
+
+          <h2 className="text-2xl font-semibold mt-8 mb-4">Top Subjects</h2>
+          {/* <div className="flex flex-wrap gap-2">
+            {user.topSubjects.map((subject, index) => (
+              <Badge key={index} variant="secondary">{subject}</Badge>
+            ))}
+          </div> */}
+
+          <h2 className="text-2xl font-semibold mt-8 mb-4">Recent Achievements</h2>
+          <div className="grid gap-4">
+            {/* {user.recentAchievements.map((achievement, index) => (
+              <Card key={index}>
+                <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+                  <CardTitle className="text-sm font-medium">{achievement}</CardTitle>
+                  <Award className="h-4 w-4 text-muted-foreground" />
+                </CardHeader>
+              </Card>
+            ))} */}
+          </div>
+        </section>
+      </main>
     </div>
   );
 };

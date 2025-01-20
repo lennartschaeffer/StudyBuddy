@@ -91,6 +91,7 @@ export const signUp = async (req: Request, res: Response) => {
 
 const authLogin = async (email: string, password: string) => {
   try {
+    console.log(email, password);
     const { data, error } = await supabase.auth.signInWithPassword({
       email: email,
       password: password,

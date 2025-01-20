@@ -4,7 +4,6 @@ import { MdOutlineTimer } from "react-icons/md";
 import { format, parseISO } from "date-fns";
 import { VscChecklist } from "react-icons/vsc";
 import { UserProfile } from "../Models/User";
-import { ListGroup, ListGroupItem } from "react-bootstrap";
 import { IoIosCheckmark } from "react-icons/io";
 import { FaCheckCircle } from "react-icons/fa";
 import { GiNightSleep } from "react-icons/gi";
@@ -16,13 +15,18 @@ import {
 } from "../endpoints/StudySessions";
 import { toast } from "react-toastify";
 import { FaUserGroup } from "react-icons/fa6";
+import { CheckCircle2, Check } from "lucide-react";
+import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
+import { Button } from "./ui/button";
 interface ActiveSoloStudySessionProps {
   groupSession: GroupStudySession;
   user: UserProfile;
+  onLeave: () => void;
 }
 const ActiveGroupStudySession: React.FC<ActiveSoloStudySessionProps> = ({
   groupSession,
   user,
+  onLeave,
 }) => {
   const queryClient = useQueryClient();
   const [timeLeft, setTimeLeft] = useState<string>("");
@@ -65,62 +69,52 @@ const ActiveGroupStudySession: React.FC<ActiveSoloStudySessionProps> = ({
   }, [groupSession, user?.user_id]);
 
   return (
-    <div className="row w-100 h-100 d-flex justify-content-center align-items-center">
-      <div className="col-12 ">
-        <div className="row">
-          <div className="col-12">
-            <h1 className="text-light text-center">
-              {groupSession?.session_name}
-            </h1>
-          </div>
-        </div>
-        <div className="row mt-5 d-flex justify-content-center">
-          <div className="col-md-3 d-flex flex-column justify-content-center align-items-center">
-            <div className="card h-100 w-100 bg-light">
-              <div className="card-body d-flex flex-column gap-3">
-                <div className="d-flex justify-content-between align-items-center mb-3">
-                  <h3 className="m-0">
-                    <strong>Session Timer</strong>
-                  </h3>
-                  <MdOutlineTimer size={25} />
-                </div>
-                <h2 className="text-center">
-                  <strong>{timeLeft}</strong>
-                </h2>
-                <div className="d-flex justify-content-center w-100">
-                  <button
-                    className="btn btn-outline-dark d-flex justify-content-around align-items-center w-100"
-                    onClick={() =>
-                      completeSessionMutation.mutate({
-                        sessionId: groupSession?.group_studysession_id!,
-                        sessionType: "group",
-                      })
-                    }
+    <div className="container mx-auto p-4 max-w-2xl">
+      <Card className="mb-6">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold text-center">
+            Active Study Session
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-4xl font-bold text-center mb-4">{timeLeft}</div>
+          <Button
+            onClick={() =>
+              completeSessionMutation.mutate({
+                sessionId: groupSession?.session_id!,
+                sessionType: "group",
+              })
+            }
+            className="w-full"
+          >
+            End Session
+          </Button>
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-xl font-bold">Member List</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <ul className="space-y-2">
+            {groupSession?.members?.map((member,id) => (
+              <li
+                key={id}
+                className="flex items-center justify-between"
+              >
+                <div className="flex items-center">
+                  <label
+                    htmlFor={`member-${id}`}
                   >
-                    {" "}
-                    <h5 className="m-0">End Session Early</h5>{" "}
-                    <GiNightSleep size={20} />
-                  </button>
+                    {member.first_name}
+                  </label>
                 </div>
-                <div className="w-100 d-flex justify-content-between align-items-center">
-                  <h4>
-                    <strong>Members:</strong>
-                  </h4>
-                  <FaUserGroup size={25} />
-                </div>
-                <ListGroup>
-                  {groupSession?.members?.map((member, id) => (
-                    <ListGroup.Item key={id}>
-                      <h6 className="m-0">{member.first_name}</h6>
-                    </ListGroup.Item>
-                  ))}
-                </ListGroup>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="col-12 d-flex justify-content-center mt-5"></div>
-      </div>
+              </li>
+            ))}
+          </ul>
+        </CardContent>
+      </Card>
+      <Button variant="destructive" className="w-full mt-3" onClick={onLeave}>Leave</Button>
     </div>
   );
 };

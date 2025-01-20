@@ -1,5 +1,6 @@
 import axios from "axios";
 import axiosInstance from "../axiosInstanceTest/axiosInstance";
+import { toast } from "@/hooks/use-toast";
 
 export const getStudyGroups = async (userId: number) => {
   try {
@@ -16,6 +17,13 @@ export const getStudyGroups = async (userId: number) => {
 
 export const createStudyGroup = async (group_name: string, user_id: number) => {
   try {
+    if(!group_name){
+      toast({
+        title: "Error",
+        description: "Missing required fields",
+      })
+      throw new Error("Missing required fields");
+    }
     const res = await axiosInstance.post(`${import.meta.env.VITE_API_URL}/studygroups`, {
       user_id: user_id,
       group_name: group_name,
@@ -54,8 +62,14 @@ export const createGroupStudySession = async (
   end_time: string
 ) => {
   if(!studygroup_id || !session_name || !end_time){
+    console.log(studygroup_id, session_name, start_time, end_time);
+    toast({
+      title: "Error",
+      description: "Missing required fields",
+    })
     throw new Error("Missing required fields");
   }
+  
   try {
     const requestBody: any = {
       studygroup_id: studygroup_id,
@@ -66,7 +80,6 @@ export const createGroupStudySession = async (
     if (start_time) {
       requestBody.start_time = new Date(start_time).toISOString();
     }
-
     const res = await axiosInstance.post(`${import.meta.env.VITE_API_URL}/studysessions/group`, requestBody,{
       withCredentials: true
     });

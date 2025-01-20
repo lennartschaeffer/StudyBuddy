@@ -2,17 +2,32 @@ import React, { useState } from "react";
 import { QueryClientProvider, useMutation, useQuery, useQueryClient } from "react-query";
 import { createGroupStudySession } from "../../endpoints/StudyGroups";
 import { toast } from "react-toastify";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "../ui/dialog";
+import { set } from "date-fns";
+import { Label } from "../ui/label";
+import { Input } from "../ui/input";
+import { DateTimePicker } from "../datetime-picker";
+import { Button } from "../ui/button";
 
 interface SessionSchedulingModalProps {
   show: boolean;
-  onClose: () => void;
+  setShow: React.Dispatch<React.SetStateAction<boolean>>;
   name: string;
   groupId: number;
 }
 
 const SessionSchedulingModal: React.FC<SessionSchedulingModalProps> = ({
   show,
-  onClose,
+  setShow,
   name,
   groupId,
 }) => {
@@ -25,7 +40,7 @@ const SessionSchedulingModal: React.FC<SessionSchedulingModalProps> = ({
     {
       onSuccess: () => {
         queryClient.invalidateQueries("upcomingSessions");
-        onClose();
+        setShow(false);
       },
       onError: (error) => {
         toast.error("Error creating group study session " + error);
@@ -34,46 +49,43 @@ const SessionSchedulingModal: React.FC<SessionSchedulingModalProps> = ({
     }
   );
   return (
-    <Modal show={show} aria-labelledby="contained-modal-title-vcenter" centered>
-      <Modal.Header>
-        <Modal.Title id="contained-modal-title-vcenter">
-          Schedule a Study Session for {name}
-        </Modal.Title>
-      </Modal.Header>
-      <Modal.Body>
-        <Form>
-          <Form.Group className="mb-3" controlId="formBasicEmail">
-            <Form.Label>Session Name</Form.Label>
-            <Form.Control
-              type="text"
-              className="mb-2"
+    <Dialog open={show} onOpenChange={setShow}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle>Schedule a Study Session for {name}</DialogTitle>
+          <DialogDescription>
+            Schedule a study session for your group.
+          </DialogDescription>
+        </DialogHeader>
+        <div className="grid gap-4 py-4">
+          <div className="">
+            <Label className="text-left mb-1">Session Name</Label>
+            <Input
+              value={sessionName}
               onChange={(e) => setSessionName(e.target.value)}
-              placeholder="Chemistry Review"
+              placeholder="Session Name"
             />
-            <Form.Label>Start Time</Form.Label>
-            <Form.Control
-              className="mb-2"
-              type="datetime-local"
-              onChange={(e) => setStartDate(e.target.value)}
+          <Label className="text-left mb-1">Start Time</Label>
+            <DateTimePicker
+              onSelectDate={(date: Date) => setStartDate(date.toISOString())}
             />
-            <Form.Label>End Time</Form.Label>
-            <Form.Control
-              type="datetime-local"
-              onChange={(e) => setEndDate(e.target.value)}
+            <Label className="text-left mb-1">End Time</Label>
+            <DateTimePicker
+              onSelectDate={(date: Date) => setEndDate(date.toISOString())}
             />
-          </Form.Group>
-        </Form>
-      </Modal.Body>
-      <Modal.Footer>
-        <Button variant="primary" onClick={() => handleScheduleSessionMutation.mutate()}>
-          Submit
-        </Button>
-        <Button variant="secondary" onClick={onClose}>
-          Close
-        </Button>
-      </Modal.Footer>
-      <ToastContainer />
-    </Modal>
+          </div>
+        </div>
+        <DialogFooter>
+          <DialogClose asChild>
+            <Button
+              onClick={() => handleScheduleSessionMutation.mutate()}
+            >
+              Start
+            </Button>
+          </DialogClose>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 };
 

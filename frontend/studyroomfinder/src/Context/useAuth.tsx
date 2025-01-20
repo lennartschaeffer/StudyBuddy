@@ -3,6 +3,7 @@ import { UserProfile } from "../Models/User";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { toast } from "react-toastify";
+import { useToast } from "@/hooks/use-toast";
 
 
 type UserContextType = {
@@ -25,6 +26,7 @@ const UserContext = createContext<UserContextType>({} as UserContextType);
 
 export const UserProvider = ({ children }: Props) => {
   const navigate = useNavigate();
+  const {toast} = useToast();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isReady, setIsReady] = useState<boolean>(false);
 
@@ -84,7 +86,10 @@ export const UserProvider = ({ children }: Props) => {
       })
       .catch((err) => {
         console.log(err);
-        toast.error(err.response.data);
+        toast({
+          title: "Error.",
+          description: err.response.data,
+        })
       });
   };
 
@@ -101,9 +106,11 @@ export const UserProvider = ({ children }: Props) => {
       navigate("/home");
     } catch (error) {
       console.log(error);
-        toast.error("Invalid email or password.");
+      toast({
+        title: "Error.",
+        description: "Invalid Username or Password",
+      })
     }
-
   };
 
   const isLoggedIn = () => {
