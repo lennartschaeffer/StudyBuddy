@@ -123,10 +123,8 @@ const getAvgStudySessionTime = async (userId: string) => {
       const diff = time.end_time.getTime() - time.start_time.getTime();
       sum += diff / 60000; //parse to minutes
     });
-
     //console.log(sum, times.length, (sum/times.length))
     const avg = (sum / times.length);
-    console.log(avg)
     return avg;
   } catch (error) {
     console.error(error);

@@ -1,4 +1,4 @@
-require('dotenv').config();
+require("dotenv").config();
 import express, { NextFunction, Request, Response } from "express";
 import cors from "cors";
 import http from "http";
@@ -8,19 +8,18 @@ import cookieParser from "cookie-parser";
 
 import bodyParser from "body-parser";
 
-
 //initializatoin
 const app = express();
-const server = http.createServer(app)
+const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
     origin: process?.env?.CORS_ORIGINS?.split(","),
     methods: ["GET", "POST", "PUT"],
-  }
-})
+  },
+});
 const port = process.env.PORT;
 
-//middlewares 
+//middlewares
 app.use(express.json());
 app.use(
   cors({
@@ -36,7 +35,6 @@ app.use(cookieParser());
   return this.toString();
 };
 
-
 //Routes
 
 import { StudySessionRoutes } from "./routes/StudySessionRoutes";
@@ -44,6 +42,7 @@ import { FriendsAndInvitesRoutes } from "./routes/FriendsAndInvitesRoutes";
 import { StudyGroupRoutes } from "./routes/StudyGroupRoutes";
 import { AuthRoutes } from "./routes/AuthRoutes";
 import { UserRoutes } from "./routes/UserRoutes";
+import { MapRoutes } from "./routes/MapRoutes";
 
 //test route
 app.get("/", (req: Request, res: Response) => {
@@ -52,25 +51,24 @@ app.get("/", (req: Request, res: Response) => {
 
 app.use("/studysessions", StudySessionRoutes(io));
 
-app.use("/users", UserRoutes())
+app.use("/users", UserRoutes());
 
 app.use("/friends", FriendsAndInvitesRoutes(io));
 
- app.use("/studygroups", StudyGroupRoutes(io));
+app.use("/studygroups", StudyGroupRoutes(io));
 
 app.use("/auth", AuthRoutes());
+
+app.use('/map', MapRoutes())
 
 //listen for socket events
 
 io.on("connection", (socket) => {
-
-  //when a user connects, join the room with their user id 
+  //when a user connects, join the room with their user id
   socket.on("joinRoom", (userId) => {
     socket.join(userId.toString());
   });
-
-})
-
+});
 
 //start server
 server.listen(port, () => {
