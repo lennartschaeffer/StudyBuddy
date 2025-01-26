@@ -21,7 +21,6 @@ export function LoginForm() {
   const { toast } = useToast();
 
   const handleLogin = async () => {
-    console.log(email,password)
     if (!email || !password) {
       toast({
         title: "Error",
@@ -29,7 +28,6 @@ export function LoginForm() {
       });
       return;
     }
-    console.log(email);
     loginUser(email, password);
   };
   return (

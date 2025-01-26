@@ -1,9 +1,9 @@
 import React from "react";
-import { SoloStudySession } from "../Models/StudySession";
+import { SoloStudySession } from "../../Models/StudySession";
 import { MdOutlineTimer } from "react-icons/md";
 import { format, parseISO } from "date-fns";
 import { VscChecklist } from "react-icons/vsc";
-import { UserProfile } from "../Models/User";
+import { UserProfile } from "../../Models/User";
 import { IoIosCheckmark } from "react-icons/io";
 import { FaCheckCircle } from "react-icons/fa";
 import { GiNightSleep } from "react-icons/gi";
@@ -12,12 +12,11 @@ import {
   completeActiveSessionEarly,
   completeActiveStudySession,
   completeTask,
-} from "../endpoints/StudySessions";
+} from "../../endpoints/StudySessions";
 import { toast } from "react-toastify";
 import { time } from "console";
-import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
-import { Input } from "./ui/input";
-import { Button } from "./ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from ".././ui/card";
+import { Button } from ".././ui/button";
 import { Check, CheckCheckIcon, CheckCircle, CheckCircle2 } from "lucide-react";
 interface ActiveSoloStudySessionProps {
   soloSession: SoloStudySession;

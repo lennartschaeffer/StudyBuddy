@@ -8,7 +8,7 @@ import { API_URL } from "./apiRoute";
 import { toast } from "react-toastify";
 import { FriendsAndInvitesProvider } from "./Context/useGetFriendsAndInvites";
 import { StudyGroupProvider } from "./Context/useGetStudyGroups";
-import { ThemeProvider } from "./components/theme-provider";
+import { ThemeProvider } from "./components/lightdarkmodes/theme-provider";
 
 const queryClient = new QueryClient();
 

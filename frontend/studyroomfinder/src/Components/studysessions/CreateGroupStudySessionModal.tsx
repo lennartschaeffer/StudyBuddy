@@ -19,7 +19,7 @@ import { Label } from "@radix-ui/react-dropdown-menu";
 import {
   Users,
 } from "lucide-react";
-import { DateTimePicker } from "../datetime-picker";
+import { DateTimePicker } from "../ui/datetime-picker";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import {

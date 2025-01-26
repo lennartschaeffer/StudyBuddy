@@ -1,5 +1,5 @@
-import { AppSidebar } from "@/components/app-sidebar"
-import { ModeToggle } from "@/components/mode-toggle"
+import { AppSidebar } from "@/components/nav/app-sidebar"
+import { ModeToggle } from "@/components/lightdarkmodes/mode-toggle"
 import {
   Breadcrumb,
   BreadcrumbItem,

@@ -1,5 +1,3 @@
-"use client"
-
 import {
   BadgeCheck,
   Bell,
@@ -7,13 +5,10 @@ import {
   CreditCard,
   LogOut,
   Sparkles,
-} from "lucide-react"
+  User,
+} from "lucide-react";
 
-import {
-  Avatar,
-  AvatarFallback,
-  AvatarImage,
-} from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,18 +17,22 @@ import {
   DropdownMenuLabel,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-} from "@/components/ui/sidebar"
-import { useAuth } from "@/Context/useAuth"
+} from "@/components/ui/sidebar";
+import { useAuth } from "@/Context/useAuth";
+import { useState } from "react";
+import FriendRequests from "../friendsandinvites/FriendRequests";
+import { Link } from "react-router-dom";
 
 export function NavUser() {
-  const { isMobile } = useSidebar()
-  const { user } = useAuth()
+  const [showNotifications, setShowNotifications] = useState<boolean>(false);
+  const { isMobile } = useSidebar();
+  const { user } = useAuth();
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -45,10 +44,14 @@ export function NavUser() {
             >
               <Avatar className="h-8 w-8 rounded-lg">
                 <AvatarImage src={"/"} alt={"avatar"} />
-                <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                <AvatarFallback className="rounded-lg">
+                  <User />
+                </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-left text-sm leading-tight">
-                <span className="truncate font-semibold">{user?.first_name} {user?.last_name}</span>
+                <span className="truncate font-semibold">
+                  {user?.first_name} {user?.last_name}
+                </span>
                 <span className="truncate text-xs">{user?.username}</span>
               </div>
               <ChevronsUpDown className="ml-auto size-4" />
@@ -64,35 +67,26 @@ export function NavUser() {
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="h-8 w-8 rounded-lg">
                   <AvatarImage src={""} alt={"user img"} />
-                  <AvatarFallback className="rounded-lg">CN</AvatarFallback>
+                  <AvatarFallback className="rounded-lg">
+                    <User />
+                  </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-left text-sm leading-tight">
-                  <span className="truncate font-semibold">{user?.first_name}</span>
+                  <span className="truncate font-semibold">
+                    {user?.first_name}
+                  </span>
                   <span className="truncate text-xs">{user?.username}</span>
                 </div>
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
             <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <Sparkles />
-                Upgrade to Pro
-              </DropdownMenuItem>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <DropdownMenuItem>
-                <BadgeCheck />
-                Account
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <CreditCard />
-                Billing
-              </DropdownMenuItem>
-              <DropdownMenuItem>
-                <Bell />
-                Notifications
-              </DropdownMenuItem>
+              <Link to={"/friendsandinvites"}>
+                <DropdownMenuItem>
+                  <Bell />
+                  Notifications
+                </DropdownMenuItem>
+              </Link>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
             <DropdownMenuItem>
@@ -101,7 +95,11 @@ export function NavUser() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
+        <FriendRequests
+          show={showNotifications}
+          setShow={setShowNotifications}
+        />
       </SidebarMenuItem>
     </SidebarMenu>
-  )
+  );
 }

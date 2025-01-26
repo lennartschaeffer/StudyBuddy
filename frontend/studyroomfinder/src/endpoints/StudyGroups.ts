@@ -47,6 +47,8 @@ export const inviteToStudyGroup = async (
       sender_id: sender_id,
       receiver_id: receiver_id,
       studygroup_id: studygroup_id,
+    }, {
+      withCredentials: true
     });
     return res.data;
   } catch (error) {

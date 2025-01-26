@@ -1,42 +1,44 @@
 import React, { useEffect, useState } from "react";
-import "./HomePage.css";
-import { ReactSearchAutocomplete } from "react-search-autocomplete";
-import axios from "axios";
 import { API_URL } from "../apiRoute";
-import { toast, ToastContainer } from "react-toastify";
 import { Buddy } from "../Models/StudyBuddy";
-import { IoPersonCircleSharp } from "react-icons/io5";
 import io from "socket.io-client";
 import { useAuth } from "../Context/useAuth";
-import { useQuery } from "react-query";
+import { useMutation, useQuery, useQueryClient } from "react-query";
 import { getAllUsers } from "../endpoints/Users";
-import { FaSearch } from "react-icons/fa";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Clock, BookOpen, Target, Search, Plus, UserPlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
+import { sendFriendRequest } from "@/endpoints/FriendRequests";
+import { useToast } from "@/hooks/use-toast";
 
 const FindBuddiesPage = () => {
   const { user } = useAuth();
+  const {toast} = useToast();
   const socket = io(API_URL);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredBuddies, setFilteredBuddies] = useState<Buddy[]>([]);
-
-  const sendBuddyRequest = async (receiver_id: number) => {
-    console.log(user?.user_id, receiver_id);
-    await axios
-      .post(`${API_URL}/friends/send`, {
-        sender_id: user?.user_id,
-        receiver_id: receiver_id,
-      })
-      .then((res) => {
-        toast.success("Friend request sent!");
-      })
-      .catch((err) => {
-        toast.error("error sending friend request " + err);
-      });
-  };
+  const queryClient = useQueryClient();
+  const sendFriendRequestMutation = useMutation(
+    ({ receiver_id }: { receiver_id: number }) =>
+      sendFriendRequest(user?.user_id!, receiver_id),
+    {
+      onSuccess: () => {
+        toast({
+          title: "Success.",
+          description: "Friend request sent.",
+        })
+        queryClient.invalidateQueries("requestsAndInvites");
+      },
+      onError: (error) => {
+        toast({
+          title: "Error.",
+          description: "Failed to send friend request."+error,
+        })
+      },
+    }
+  );
 
   const { data: studyBuddies } = useQuery(
     "studyBuddies",
@@ -95,7 +97,13 @@ const FindBuddiesPage = () => {
                       </h3>
                     </div>
                     <div className="flex items-center">
-                      <Button onClick={() => sendBuddyRequest(buddy.user_id)}>
+                      <Button
+                        onClick={() =>
+                          sendFriendRequestMutation.mutate({
+                            receiver_id: buddy.user_id,
+                          })
+                        }
+                      >
                         <UserPlus />
                       </Button>
                     </div>
@@ -110,65 +118,6 @@ const FindBuddiesPage = () => {
         </Card>
       </div>
     </div>
-    // <div className="Main vh-100">
-    //   <div className="h-100">
-    //     <div className="container h-100 d-flex flex-column justify-content-center align-items-center">
-    //       <div className="row ">
-    //         <div className="col-12">
-    //           <div className="card p-2">
-    //             <div className="card-body">
-    //               <h1 className="text-center">
-    //                 <b>Find A Study Buddy</b>
-    //                 <FaSearch size={30} className="m-4"/>
-    //               </h1>
-    //               <p className="text-muted">
-    //                 Search for a buddy to study with or add a friend to your
-    //                 buddy list!
-    //               </p>
-    //               <Form.Control
-    //                 onChange={(e) => handleSearch(e.target.value)}
-    //                 type="text"
-    //                 placeholder="Search for a buddy..."
-    //               />
-    //               <ListGroup className="mt-5">
-    //                 {filteredBuddies ? (
-    //                   filteredBuddies.map((buddy: Buddy, id: number) => (
-    //                     <ListGroupItem key={id}>
-    //                       <div className="row">
-    //                         <div className="col-2 d-flex align-items-center">
-    //                           <IoPersonCircleSharp size={40} />
-    //                         </div>
-    //                         <div className="col-7 d-flex align-items-center justify-content-start">
-    //                           <p className="m-0 text-start">
-    //                             <b>
-    //                               {buddy?.first_name} {buddy?.last_name} (@
-    //                               {buddy?.username})
-    //                             </b>
-    //                           </p>
-    //                         </div>
-    //                         <div className="col-3 d-flex align-items-center">
-    //                           <button
-    //                             className="btn btn-dark btn-block"
-    //                             onClick={() => sendBuddyRequest(buddy?.user_id)}
-    //                           >
-    //                             Add +
-    //                           </button>
-    //                         </div>
-    //                       </div>
-    //                     </ListGroupItem>
-    //                   ))
-    //                 ) : (
-    //                   <p>No buddies were found :(</p>
-    //                 )}
-    //               </ListGroup>
-    //             </div>
-    //           </div>
-    //         </div>
-    //       </div>
-    //     </div>
-    //   </div>
-    //   <ToastContainer />
-    // </div>
   );
 };
 

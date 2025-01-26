@@ -13,6 +13,7 @@ import { Icon } from "leaflet";
 import { useAuth } from "../Context/useAuth";
 import { StudySpot, Location } from "../Models/Map";
 import { StudySessionMapInfo } from "../Models/StudySession";
+import { LoadingSymbol } from "./ui/LoadingSymbol";
 
   
 interface MapProps {
@@ -157,7 +158,7 @@ const Map: React.FC<MapProps> = ({ studySessionMapInfo }) => {
     <>
       {loading ? (
         <div className="d-flex justify-content-center align-items-center vh-100">
-          {/* <Spinner animation="grow" variant="light" /> */}
+          <LoadingSymbol/>
         </div>
       ) : (
         <MapContainer
@@ -176,7 +177,7 @@ const Map: React.FC<MapProps> = ({ studySessionMapInfo }) => {
                 icon={studySessionMapInfo ? personStudyingIcon : personIcon}
               >
                 <Popup>
-                  {studySessionMapInfo?.user ? (
+                  {/* {studySessionMapInfo?.user ? (
                     <div style={{ display: "flex-column" }}>
                       <h6>{user?.first_name} is currently in session</h6>
                       <li style={{ listStyleType: "none" }}>
@@ -192,7 +193,8 @@ const Map: React.FC<MapProps> = ({ studySessionMapInfo }) => {
                     <div>
                       {user?.first_name} is not currently in a study session.
                     </div>
-                  )}
+                  )} */}
+                  {user?.first_name} is here.
                 </Popup>
               </Marker>
             )}

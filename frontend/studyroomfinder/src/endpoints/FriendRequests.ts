@@ -2,8 +2,10 @@ import axios from "axios";
 import { FriendRequest, GroupInvite } from "../Models/RequestsAndInvites";
 import { Buddy } from "../Models/StudyBuddy";
 import { fr } from "date-fns/locale";
+import { useToast } from "@/hooks/use-toast";
 
 export const getFriendRequestsAndGroupInvites = async (userId: number) => {
+  
   try {
     const res = await axios.get(`${import.meta.env.VITE_API_URL}/friends/${userId}`,{
       withCredentials: true
@@ -104,3 +106,18 @@ export const removeFriend = async (friend_id: number, userId: number) => {
     throw error;
   }
 };
+
+export const sendFriendRequest = async (senderId: number, receiverId: number) => {
+  try {
+    const res = await axios
+    .post(`${import.meta.env.VITE_API_URL}/friends/send`, {
+      sender_id: senderId,
+      receiver_id: receiverId,
+    })
+    return res.data;
+  } catch (error) {
+    console.error("Failed to send buddy request:", error);
+    throw error;
+  }
+      
+  };

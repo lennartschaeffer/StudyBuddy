@@ -15,7 +15,7 @@ import {
 import { set } from "date-fns";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
-import { DateTimePicker } from "../datetime-picker";
+import { DateTimePicker } from "../ui/datetime-picker";
 import { Button } from "../ui/button";
 
 interface SessionSchedulingModalProps {

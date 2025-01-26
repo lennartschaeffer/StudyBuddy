@@ -18,7 +18,7 @@ import {
 import { Label } from "@radix-ui/react-dropdown-menu";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import { DateTimePicker } from "../datetime-picker";
+import { DateTimePicker } from "../ui/datetime-picker";
 import { useToast } from "@/hooks/use-toast";
 import { BookOpen, Trash } from "lucide-react";
 

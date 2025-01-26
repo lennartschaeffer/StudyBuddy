@@ -1,4 +1,3 @@
-import "./HomePage.css";
 import { useQuery } from "react-query";
 import { getUserProfileInfo } from "../endpoints/Profile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";

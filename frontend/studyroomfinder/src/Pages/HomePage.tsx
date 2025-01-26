@@ -1,4 +1,3 @@
-import "./HomePage.css";
 import { useAuth } from "../Context/useAuth";
 import { Link } from "react-router-dom";
 import { useQuery } from "react-query";
@@ -15,7 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { LoadingSymbol } from "@/components/LoadingSymbol";
+import { LoadingSymbol } from "@/components/ui/LoadingSymbol";
 
 const HomePage = () => {
   const { user } = useAuth();

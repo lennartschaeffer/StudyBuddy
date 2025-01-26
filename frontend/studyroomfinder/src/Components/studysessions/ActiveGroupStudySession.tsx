@@ -1,9 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { GroupStudySession, SoloStudySession } from "../Models/StudySession";
+import { GroupStudySession, SoloStudySession } from "../../Models/StudySession";
 import { MdOutlineTimer } from "react-icons/md";
 import { format, parseISO } from "date-fns";
 import { VscChecklist } from "react-icons/vsc";
-import { UserProfile } from "../Models/User";
+import { UserProfile } from "../../Models/User";
 import { IoIosCheckmark } from "react-icons/io";
 import { FaCheckCircle } from "react-icons/fa";
 import { GiNightSleep } from "react-icons/gi";
@@ -12,12 +12,12 @@ import {
   completeActiveSessionEarly,
   completeActiveStudySession,
   completeTask,
-} from "../endpoints/StudySessions";
+} from "../../endpoints/StudySessions";
 import { toast } from "react-toastify";
 import { FaUserGroup } from "react-icons/fa6";
 import { CheckCircle2, Check } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
-import { Button } from "./ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from ".././ui/card";
+import { Button } from ".././ui/button";
 interface ActiveSoloStudySessionProps {
   groupSession: GroupStudySession;
   user: UserProfile;

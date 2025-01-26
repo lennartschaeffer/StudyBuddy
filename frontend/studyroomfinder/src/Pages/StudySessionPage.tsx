@@ -1,7 +1,5 @@
 import { useEffect, useState } from "react";
-import "./HomePage.css";
-import StudySessionModal from "../components/modals/StudySessionModal";
-import { toast, ToastContainer } from "react-toastify";
+import StudySessionModal from "../components/studysessions/StudySessionModal";
 import "react-toastify/dist/ReactToastify.css";
 import { useAuth } from "../Context/useAuth";
 import { useMutation, useQuery, useQueryClient } from "react-query";
@@ -13,16 +11,17 @@ import {
 } from "../endpoints/StudySessions";
 import { format, parseISO } from "date-fns";
 import { BiGroup, BiUser } from "react-icons/bi";
-import CreateGroupStudySessionModal from "../components/modals/CreateGroupStudySessionModal";
+import CreateGroupStudySessionModal from "../components/studysessions/CreateGroupStudySessionModal";
 import { GroupStudySession, SoloStudySession } from "../Models/StudySession";
-import ActiveSoloStudySession from "../components/ActiveSoloStudySession";
-import ActiveGroupStudySession from "../components/ActiveGroupStudySession";
+import ActiveSoloStudySession from "../components/studysessions/ActiveSoloStudySession";
+import ActiveGroupStudySession from "../components/studysessions/ActiveGroupStudySession";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Clock, Users } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { ScrollArea } from "@radix-ui/react-scroll-area";
 import { Progress } from "@/components/ui/progress";
-import { LoadingSymbol } from "@/components/LoadingSymbol";
+import { LoadingSymbol } from "@/components/ui/LoadingSymbol";
+import { useToast } from "@/hooks/use-toast";
 
 const StudySessionPage = () => {
   const [showSessionModal, setShowSessionModal] = useState(false);
@@ -35,6 +34,7 @@ const StudySessionPage = () => {
 
   const { user } = useAuth();
   const queryClient = useQueryClient();
+  const {toast} = useToast()
 
   const {
     data: activeStudySession,
@@ -51,7 +51,10 @@ const StudySessionPage = () => {
       },
       onError: (error) => {
         console.error(error);
-        toast.error("Failed to fetch active study session.");
+        toast({
+          title: "Error.",
+          description: "Couldnt fetch active study session."
+        })
       },
     }
   );

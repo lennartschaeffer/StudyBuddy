@@ -11,6 +11,7 @@ import StudySessionPage from "../Pages/StudySessionPage";
 import FindBuddiesPage from "../Pages/FindBuddiesPage";
 import StudyGroupPage from "../Pages/StudyGroupPage";
 import EmailVerificationPage from "../Pages/EmailVerificationPage";
+import FriendsAndInvitesPage from "@/Pages/FriendsAndInvitesPage";
 
 export const router = createBrowserRouter([
   {
@@ -66,6 +67,14 @@ export const router = createBrowserRouter([
         element: (
           <ProtectedRoute>
             <StudyGroupPage />
+          </ProtectedRoute>
+        ),
+      },
+      {
+        path: "friendsandinvites",
+        element: (
+          <ProtectedRoute>
+            <FriendsAndInvitesPage />
           </ProtectedRoute>
         ),
       },
