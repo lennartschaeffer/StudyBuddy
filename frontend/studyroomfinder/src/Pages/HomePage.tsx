@@ -114,6 +114,11 @@ const HomePage = () => {
                       </div>
                     )
                   )}
+                  {
+                    recentStudySessions?.userSessions?.length === 0 && (
+                      <p className="text-center">No recent solo sessions.</p>
+                    )
+                  }
                 </ScrollArea>
               </TabsContent>
               <TabsContent value="group">
@@ -139,6 +144,11 @@ const HomePage = () => {
                       </div>
                     )
                   )}
+                  {
+                    recentStudySessions?.groupSessions?.length === 0 && (
+                      <p className="text-center">No recent group sessions.</p>
+                    )
+                  }
                 </ScrollArea>
               </TabsContent>
             </Tabs>

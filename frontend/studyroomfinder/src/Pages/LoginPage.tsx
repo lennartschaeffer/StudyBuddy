@@ -1,56 +1,27 @@
 import { LoginForm } from "@/components/login/LoginForm";
 import { Toaster } from "@/components/ui/toaster";
+import { BookOpen } from "lucide-react";
+import { Link } from "react-router-dom";
 
 const LoginPage = () => {
-
   return (
-    <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-      <div className="w-full max-w-sm">
-        <LoginForm />
-        <Toaster />
+    <div className="flex flex-col min-h-screen">
+        <header className="px-4 lg:px-6 h-14 flex items-center">
+          <Link className="flex items-center justify-center" to="/">
+            <BookOpen className="h-6 w-6 mr-2" />
+            <span className="font-bold">StudyBuddy</span>
+          </Link>
+        </header>
+        <main className="flex-1 flex items-center justify-center p-4">
+          <LoginForm />
+          <Toaster />
+        </main>
+        <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
+          <p className="text-xs text-gray-500 dark:text-gray-400">
+            © 2024 StudyBuddy. All rights reserved.
+          </p>
+        </footer>
       </div>
-    </div>
-    // <div className="vh-100 Main">
-    //   <div className="h-100 d-flex flex-column justify-content-center align-items-center">
-    //     <div
-    //       className="card bg-light p-3"
-    //       style={{ boxShadow: "0px 0px 20px 1px rgba(0,0,0,0.75)" }}
-    //     >
-    //       <div className="card-body">
-    //         <div className="d-flex flex-column align-items-center justify-content-around border-bottom ">
-    //           <h2 className=""><strong>Welcome Back.</strong></h2>
-    //           <p className="text-muted">Sign In and Start Your Ideal Study Session.</p>
-    //         </div>
-    //         <Form className="p-4">
-    //           <Form.Group className="mb-3" controlId="formBasicEmail">
-    //             <Form.Label className="">Email</Form.Label>
-    //             <Form.Control
-    //               type="text"
-    //               placeholder="Enter email..."
-    //               onChange={(e) => setEmail(e.target.value)}
-    //             />
-    //           </Form.Group>
-    //           <Form.Group className="mb-3" controlId="formBasicPassword">
-    //             <Form.Label className="">Password</Form.Label>
-    //             <Form.Control
-    //               type="password"
-    //               placeholder="Password"
-    //               onChange={(e) => setPassword(e.target.value)}
-    //             />
-    //           </Form.Group>
-    //           <div className="d-flex flex-column">
-    //           <Button variant="dark" className="w-100" onClick={handleLogin}>
-    //             Log In
-    //           </Button>
-    //           <Link to={"/register"} className="">Don't Have An Account Yet? Click Here to Register.</Link>
-    //           </div>
-              
-    //         </Form>
-    //       </div>
-    //     </div>
-    //   </div>
-    //  <ToastContainer />
-    // </div>
   );
 };
 

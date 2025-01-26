@@ -3,87 +3,102 @@ import { useState } from "react";
 // import Form from "react-bootstrap/Form";
 import { useAuth } from "../Context/useAuth";
 import { toast, ToastContainer } from "react-toastify";
+import { BookOpen } from "lucide-react";
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Link } from "react-router-dom";
 
 const RegistrationPage = () => {
   const [username, setUserName] = useState("");
   const [password, setPassword] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [university, setUniversity] = useState("");
+  const [degree, setDegree] = useState("");
   const [email, setEmail] = useState("");
   const { registerUser } = useAuth();
 
-  const handleRegister = async () => {
+  const handleRegister = async (e: any) => {
+    e.preventDefault();
     if (!username || !password || !firstName || !lastName || !email) {
       toast.error("Please fill out all fields.");
       return;
     }
-    registerUser(username, password, firstName, lastName, email);
+    registerUser(username, password, firstName, lastName, email, university, degree);
   };
   return (
-    <div className="vh-100 Main">
-      <div className="h-100 d-flex flex-column justify-content-center align-items-center">
-        <div
-          className="card bg-light p-3"
-          style={{ boxShadow: "0px 0px 20px 1px rgba(0,0,0,0.75)" }}
-        >
-          <div className="card-body">
-            <div className="d-flex flex-column align-items-center justify-content-around border-bottom ">
-              <h2 className="">
-                <strong>Get Started.</strong>
-              </h2>
-              <p className="text-muted">
-                Sign Up and Start Your Ideal Study Session.
-              </p>
-            </div>
-            {/* <Form className="p-4">
-              <Form.Group className="mb-3" controlId="formBasicEmail">
-                <Form.Label className="">Email</Form.Label>
-                <Form.Control
-                  type="text"
-                  placeholder="Enter email..."
-                  onChange={(e) => setEmail(e.target.value)}
-                />
-              </Form.Group>
-              <Form.Group className="mb-3" controlId="formBasicEmail">
-                <Form.Label className="">Username</Form.Label>
-                <Form.Control
-                  type="text"
-                  placeholder="Enter username..."
-                  onChange={(e) => setUserName(e.target.value)}
-                />
-              </Form.Group>
-              <Form.Group className="mb-3" controlId="formBasicEmail">
-                <Form.Label className="">First Name</Form.Label>
-                <Form.Control
-                  type="text"
-                  placeholder="Enter First Name..."
-                  onChange={(e) => setFirstName(e.target.value)}
-                />
-              </Form.Group>
-              <Form.Group className="mb-3" controlId="formBasicEmail">
-                <Form.Label className="">Last Name</Form.Label>
-                <Form.Control
-                  type="text"
-                  placeholder="Enter Last Name..."
-                  onChange={(e) => setLastName(e.target.value)}
-                />
-              </Form.Group>
-              <Form.Group className="mb-3" controlId="formBasicPassword">
-                <Form.Label className="">Password</Form.Label>
-                <Form.Control
-                  type="password"
-                  placeholder="Password"
-                  onChange={(e) => setPassword(e.target.value)}
-                />
-              </Form.Group>
-              <Button variant="dark" className="w-100" onClick={handleRegister}>
+    <div className="flex flex-col min-h-screen">
+      <header className="px-4 lg:px-6 h-14 flex items-center">
+        <Link className="flex items-center justify-center" to="/">
+          <BookOpen className="h-6 w-6 mr-2" />
+          <span className="font-bold">StudyBuddy</span>
+        </Link>
+      </header>
+      <main className="flex-1 flex items-center justify-center p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Create an account</CardTitle>
+            <CardDescription>Join StudyBuddy to start your learning journey</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <form onSubmit={(e) => handleRegister(e)}>
+              <div className="grid w-full items-center gap-4">
+                <div className="flex flex-col space-y-1.5">
+                  <Label htmlFor="firstName">First Name*</Label>
+                  <Input id="firstName" name="firstName" onChange={(e) => setFirstName(e.target.value)} required />
+                </div>
+                <div className="flex flex-col space-y-1.5">
+                  <Label htmlFor="lastName">Last Name*</Label>
+                  <Input id="lastName" name="lastName"  onChange={(e) => setLastName(e.target.value)} required />
+                </div>
+                <div className="flex flex-col space-y-1.5">
+                  <Label htmlFor="email">Email*</Label>
+                  <Input id="email" name="email" type="email"  onChange={(e) => setEmail(e.target.value)} required />
+                </div>
+                <div className="flex flex-col space-y-1.5">
+                  <Label htmlFor="username">Username*</Label>
+                  <Input id="username" name="username" 
+                   onChange={(e) => setUserName(e.target.value)} required />
+                </div>
+                <div className="flex flex-col space-y-1.5">
+                  <Label htmlFor="password">Password*</Label>
+                  <Input
+                    id="password"
+                    name="password"
+                    type="password"
+                    onChange={(e) => setPassword(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="flex flex-col space-y-1.5">
+                  <Label htmlFor="university">University (Optional)</Label>
+                  <Input id="university" name="university"  onChange={(e) => setUniversity(e.target.value)} />
+                </div>
+                <div className="flex flex-col space-y-1.5">
+                  <Label htmlFor="degree">Degree (Optional)</Label>
+                  <Input id="degree" name="degree" onChange={(e) => setDegree(e.target.value)} />
+                </div>
+              </div>
+              <Button className="w-full mt-6" type="submit">
                 Register
               </Button>
-            </Form> */}
-          </div>
-        </div>
-      </div>
-      <ToastContainer />
+            </form>
+          </CardContent>
+          <CardFooter className="flex justify-center">
+            <p className="text-sm text-gray-500">
+              Already have an account?{" "}
+              <Link to="/login" className="text-primary hover:underline">
+                Log in
+              </Link>
+            </p>
+          </CardFooter>
+        </Card>
+      </main>
+      <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
+        <p className="text-xs text-gray-500 dark:text-gray-400">© 2024 StudyBuddy. All rights reserved.</p>
+      </footer>
     </div>
   );
 };

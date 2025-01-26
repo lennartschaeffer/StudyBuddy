@@ -1,27 +1,25 @@
+import { Button } from '@/components/ui/button'
+import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import React from 'react'
 import { Link } from 'react-router-dom'
 import { ToastContainer } from 'react-toastify'
 
 const EmailVerificationPage = () => {
   return (
-    <div className="vh-100 Main">
-      <div className="h-100 d-flex flex-column justify-content-center align-items-center">
-        <div
-          className="card bg-light p-3"
-          style={{ boxShadow: "0px 0px 20px 1px rgba(0,0,0,0.75)" }}
-        >
-          <div className="card-body">
-            <div className="d-flex flex-column align-items-center justify-content-around border-bottom ">
-              <h2 className=""><strong>Verify Your Email.</strong></h2>
-              <p className="text-muted">
-                Please check your email for a verification link. Once you have verified your email, you can log in.
-              </p>
-            </div>
-            <Link to={'/login'} className='btn btn-dark d-block'>Proceed to Login</Link>
-          </div>
-        </div>
-      </div>
-      <ToastContainer />
+    <div className='flex flex-col items-center justify-center h-screen'>
+      <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Verify Your Email</CardTitle>
+            <CardDescription>
+              We have sent you an email with a link to verify your account. Please check your email and click the link to complete the verification process.
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Link to={'/login'}>
+              <Button className='w-full'>Proceed To Login</Button>
+            </Link>
+          </CardContent>
+        </Card>
     </div>
   )
 }

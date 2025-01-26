@@ -13,7 +13,9 @@ type UserContextType = {
     password: string,
     firstName: string,
     lastName: string,
-    email: string
+    email: string,
+    university: string,
+    degree: string
   ) => void;
   loginUser: (email: string, password: string) => void;
   logout: () => void;
@@ -47,7 +49,7 @@ export const UserProvider = ({ children }: Props) => {
     } catch (error) {
       console.log("No user: ", error);
       setUser(null);
-      navigate("/login");
+      navigate("/");
     }
   };
 
@@ -70,7 +72,9 @@ export const UserProvider = ({ children }: Props) => {
     password: string,
     firstName: string,
     lastName: string,
-    email: string
+    email: string,
+    university: string,
+    degree: string
   ) => {
     await axios
       .post(`${import.meta.env.VITE_API_URL}/auth/signup`, {
@@ -79,6 +83,8 @@ export const UserProvider = ({ children }: Props) => {
         first_name: firstName,
         last_name: lastName,
         email: email,
+        university: university,
+        degree: degree,
       })
       .then((res) => {
         console.log(res);
@@ -101,7 +107,6 @@ export const UserProvider = ({ children }: Props) => {
         email: email,
         password: password,
       })
-      console.log(res.data);
       await fetchUser();
       navigate("/home");
     } catch (error) {

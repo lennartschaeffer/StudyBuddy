@@ -32,7 +32,8 @@ import { Link } from "react-router-dom";
 export function NavUser() {
   const [showNotifications, setShowNotifications] = useState<boolean>(false);
   const { isMobile } = useSidebar();
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
+
   return (
     <SidebarMenu>
       <SidebarMenuItem>
@@ -89,7 +90,7 @@ export function NavUser() {
               </Link>
             </DropdownMenuGroup>
             <DropdownMenuSeparator />
-            <DropdownMenuItem>
+            <DropdownMenuItem onClick={logout}>
               <LogOut />
               Log out
             </DropdownMenuItem>
