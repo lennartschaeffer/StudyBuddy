@@ -8,8 +8,8 @@ import {
   completeTask,
 } from "../../endpoints/StudySessions";
 import { time } from "console";
-import { Card, CardHeader, CardTitle, CardContent } from ".././ui/card";
-import { Button } from ".././ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
+import { Button } from "../ui/button";
 import { Check, CheckCheckIcon, CheckCircle, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 interface ActiveSoloStudySessionProps {
