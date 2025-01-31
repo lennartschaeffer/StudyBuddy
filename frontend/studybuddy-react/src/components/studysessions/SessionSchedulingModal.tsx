@@ -1,10 +1,5 @@
 import React, { useState } from "react";
-import {
-  QueryClientProvider,
-  useMutation,
-  useQuery,
-  useQueryClient,
-} from "react-query";
+import { useMutation, useQueryClient } from "react-query";
 import { createGroupStudySession } from "../../endpoints/StudyGroups";
 import {
   Dialog,
@@ -14,9 +9,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "../ui/dialog";
-import { set } from "date-fns";
 import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { DateTimePicker } from "../ui/datetime-picker";

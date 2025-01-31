@@ -3,7 +3,6 @@ import "leaflet/dist/leaflet.css";
 import "leaflet.markercluster/dist/MarkerCluster.css";
 import "leaflet.markercluster/dist/MarkerCluster.Default.css";
 import { useEffect, useState } from "react";
-import axios from "axios";
 import { Icon } from "leaflet";
 import { useAuth } from "../Context/useAuth";
 import { StudySpot, Location } from "../Models/Map";

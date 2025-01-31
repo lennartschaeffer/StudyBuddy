@@ -1,12 +1,4 @@
-import {
-  BadgeCheck,
-  Bell,
-  ChevronsUpDown,
-  CreditCard,
-  LogOut,
-  Sparkles,
-  User,
-} from "lucide-react";
+import { Bell, ChevronsUpDown, LogOut, User } from "lucide-react";
 
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -25,11 +17,9 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/Context/useAuth";
-import { useState } from "react";
 import { Link } from "react-router-dom";
 
 export function NavUser() {
-  const [showNotifications, setShowNotifications] = useState<boolean>(false);
   const { isMobile } = useSidebar();
   const { user, logout } = useAuth();
 

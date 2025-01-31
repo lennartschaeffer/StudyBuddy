@@ -1,7 +1,6 @@
 import { LoadingSymbol } from "@/components/ui/LoadingSymbol";
 import { Button } from "@/components/ui/button";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/Context/useAuth";
@@ -15,23 +14,14 @@ import { useToast } from "@/hooks/use-toast";
 import { FriendRequest, GroupInvite } from "@/Models/RequestsAndInvites";
 import { Buddy } from "@/Models/StudyBuddy";
 
-import {
-  Check,
-  CheckCircle2,
-  Clock,
-  Cross,
-  CrossIcon,
-  Minus,
-  Search,
-  UserPlus,
-} from "lucide-react";
+import { Check, Minus, Search } from "lucide-react";
 
 import { useMutation, useQueryClient } from "react-query";
 
 const FriendsAndInvitesPage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { friendsAndInvites, isLoading, error } = useGetFriendsAndInvites();
+  const { friendsAndInvites, isLoading } = useGetFriendsAndInvites();
   const queryClient = useQueryClient();
 
   console.log(friendsAndInvites);

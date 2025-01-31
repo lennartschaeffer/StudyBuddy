@@ -1,16 +1,13 @@
 import { useEffect, useState } from "react";
 import StudySessionModal from "../components/studysessions/StudySessionModal";
 import { useAuth } from "../Context/useAuth";
-import { useMutation, useQuery, useQueryClient } from "react-query";
+import { useQuery } from "react-query";
 import {
-  completeActiveSessionEarly,
-  completeActiveStudySession,
-  completeTask,
   getActiveSession,
 } from "../endpoints/StudySessions";
 import { format, parseISO } from "date-fns";
 import CreateGroupStudySessionModal from "../components/studysessions/CreateGroupStudySessionModal";
-import { GroupStudySession, SoloStudySession } from "../Models/StudySession";
+import { GroupStudySession } from "../Models/StudySession";
 import ActiveSoloStudySession from "../components/studysessions/ActiveSoloStudySession";
 import ActiveGroupStudySession from "../components/studysessions/ActiveGroupStudySession";
 import { Button } from "@/components/ui/button";
@@ -21,8 +18,6 @@ import { LoadingSymbol } from "@/components/ui/LoadingSymbol";
 import { useToast } from "@/hooks/use-toast";
 
 const StudySessionPage = () => {
-  const [showSessionModal, setShowSessionModal] = useState(false);
-  const [showGroupSessionModal, setShowGroupSessionModal] = useState(false);
   const [timeLeft, setTimeLeft] = useState("");
   const [joinStudyGroupInfo, setJoinStudyGroupInfo] =
     useState<GroupStudySession>();
@@ -30,12 +25,10 @@ const StudySessionPage = () => {
     useState<boolean>(false);
 
   const { user } = useAuth();
-  const queryClient = useQueryClient();
   const { toast } = useToast();
 
   const {
     data: activeStudySession,
-    refetch,
     isLoading,
   } = useQuery(
     ["activeStudySession", user?.user_id],

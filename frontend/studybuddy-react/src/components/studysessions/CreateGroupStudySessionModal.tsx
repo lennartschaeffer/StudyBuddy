@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   useMutation,
   useQueryClient,
@@ -32,10 +32,6 @@ import {
 import { StudyGroup } from "@/Models/StudyGroup";
 import { useToast } from "@/hooks/use-toast";
 
-interface CreateGroupStudySessionModalProps {
-  show: boolean;
-  onClose: () => void;
-}
 
 const CreateGroupStudySessionModal = () => {
   const [endTime, setEndTime] = useState("");
@@ -61,7 +57,7 @@ const CreateGroupStudySessionModal = () => {
       onError: (error) => {
         toast({
           title: "Error",
-          description: "Error creating group study session",
+          description: "Error creating group study session"+error,
         });
       },
     }

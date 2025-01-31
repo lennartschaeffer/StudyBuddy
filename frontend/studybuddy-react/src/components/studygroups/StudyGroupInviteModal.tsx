@@ -1,8 +1,7 @@
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { useAuth } from "../../Context/useAuth";
-import { IoPersonCircleSharp } from "react-icons/io5";
 import { useGetFriendsAndInvites } from "../../Context/useGetFriendsAndInvites";
-import { useMutation, useQuery, useQueryClient } from "react-query";
+import { useMutation, useQueryClient } from "react-query";
 import { inviteToStudyGroup } from "../../endpoints/StudyGroups";
 import {
   Dialog,
@@ -13,14 +12,11 @@ import {
   DialogHeader,
   DialogTitle,
 } from "../ui/dialog";
-import { Label } from "../ui/label";
-import { Input } from "../ui/input";
-import { DateTimePicker } from "../ui/datetime-picker";
 import { Button } from "../ui/button";
 import { ScrollArea } from "../ui/scroll-area";
 import { LoadingSymbol } from "../ui/LoadingSymbol";
 import { Friend } from "@/Models/RequestsAndInvites";
-import { Mail, PlusCircleIcon, UserPlus } from "lucide-react";
+import { Mail } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 
 interface StudyGroupInviteModalProps {
@@ -62,7 +58,7 @@ const StudyGroupInviteModal: React.FC<StudyGroupInviteModalProps> = ({
       onError: (error) => {
         toast({
           title: "Error.",
-          description: "Couldnt invite buddy to study group.",
+          description: "Couldnt invite buddy to study group."+error,
         })
       },
     }

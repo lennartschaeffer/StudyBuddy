@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { useQuery } from "react-query";
 import { getRecentStudySessions } from "../endpoints/StudySessions";
 import { GroupStudySession, SoloStudySession } from "../Models/StudySession";
-import { BookOpen, MapPin, Users, UserPlus, Clock, Loader } from "lucide-react";
+import { BookOpen, MapPin, Users, UserPlus, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -26,7 +26,6 @@ const HomePage = () => {
       onError: (error) => {
         console.error("Failed to fetch recent study sessions:", error);
       },
-      onSuccess: (data) => {},
     }
   );
   console.log(recentStudySessions);

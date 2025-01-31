@@ -3,8 +3,7 @@ import {
   useMutation,
   useQueryClient,
 } from "react-query";
-import { createGroupStudySession, createStudyGroup } from "../../endpoints/StudyGroups";
-import { useGetStudyGroups } from "../../Context/useGetStudyGroups";
+import { createStudyGroup } from "../../endpoints/StudyGroups";
 import {
   Dialog,
   DialogClose,
@@ -13,23 +12,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "../ui/dialog";
 import { Label } from "@radix-ui/react-dropdown-menu";
-import {
-  Users,
-} from "lucide-react";
-import { DateTimePicker } from "../ui/datetime-picker";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "../ui/select";
-import { StudyGroup } from "@/Models/StudyGroup";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/Context/useAuth";
 
@@ -60,7 +46,10 @@ const CreateStudyGroupModal: React.FC<CreateStudyGroupModalProps> = ({
         setShow(false);
       },
       onError: (error) => {
-        //toast.error("Error creating study group " + error);
+        toast({
+          title: "Error.",
+          description: "Failed to create study group."+error,
+        })
       },
     }
   );

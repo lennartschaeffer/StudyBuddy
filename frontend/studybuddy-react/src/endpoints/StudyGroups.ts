@@ -1,4 +1,3 @@
-import axios from "axios";
 import axiosInstance from "../axiosInstanceTest/axiosInstance";
 import { toast } from "@/hooks/use-toast";
 

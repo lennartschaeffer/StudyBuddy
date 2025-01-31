@@ -2,7 +2,6 @@ import * as React from "react"
 
 import { NavMain } from "@/components/nav/nav-main"
 import { NavUser } from "@/components/nav/nav-user"
-import { TeamSwitcher } from "@/components/lightdarkmodes/team-switcher"
 import {
   Sidebar,
   SidebarContent,
@@ -10,7 +9,6 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { ModeToggle } from "../lightdarkmodes/mode-toggle"
 
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {

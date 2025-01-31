@@ -1,19 +1,13 @@
-"use client";
+"use client";;
+import { BookOpen, Home, MapPin, User, UserPlus, Users } from "lucide-react";
 
-import { BookOpen, ChevronRight, GroupIcon, Home, MapPin, User, UserPlus, Users, type LucideIcon } from "lucide-react";
-
-import {
-  Collapsible,
-  CollapsibleContent,
-  CollapsibleTrigger,
-} from "@/components/ui/collapsible";
 import {
   SidebarGroup,
   SidebarGroupLabel,
   SidebarMenu,
   SidebarMenuButton,
 } from "@/components/ui/sidebar";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 export function NavMain() {
   const navigate = useNavigate();

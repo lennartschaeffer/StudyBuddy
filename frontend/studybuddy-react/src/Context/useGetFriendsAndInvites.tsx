@@ -3,7 +3,6 @@ import { FriendsAndInvites } from "../Models/RequestsAndInvites";
 import { useAuth } from "./useAuth";
 import { useQuery } from "react-query";
 import { getFriendRequestsAndGroupInvites } from "../endpoints/FriendRequests";
-import { useState } from "react";
 
 type FriendsAndInvitesContext = {
   friendsAndInvites: FriendsAndInvites | undefined;

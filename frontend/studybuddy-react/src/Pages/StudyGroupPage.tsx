@@ -20,7 +20,6 @@ import {
 import { format, parseISO } from "date-fns";
 import { LoadingSymbol } from "@/components/ui/LoadingSymbol";
 import StudyGroupInviteModal from "@/components/studygroups/StudyGroupInviteModal";
-import { group } from "console";
 
 const StudyGroupPage = () => {
   const { user } = useAuth();

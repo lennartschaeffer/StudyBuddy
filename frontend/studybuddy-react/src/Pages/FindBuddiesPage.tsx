@@ -1,12 +1,10 @@
-import React, { useEffect, useState } from "react";
-import { API_URL } from "../apiRoute";
+import { useState } from "react";
 import { Buddy } from "../Models/StudyBuddy";
-import io from "socket.io-client";
 import { useAuth } from "../Context/useAuth";
 import { useMutation, useQuery, useQueryClient } from "react-query";
 import { getAllUsers } from "../endpoints/Users";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Clock, BookOpen, Target, Search, Plus, UserPlus } from "lucide-react";
+import { Search, UserPlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
@@ -16,7 +14,6 @@ import { useToast } from "@/hooks/use-toast";
 const FindBuddiesPage = () => {
   const { user } = useAuth();
   const {toast} = useToast();
-  const socket = io(API_URL);
   const [searchTerm, setSearchTerm] = useState("");
   const [filteredBuddies, setFilteredBuddies] = useState<Buddy[]>([]);
   const queryClient = useQueryClient();

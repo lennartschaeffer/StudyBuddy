@@ -2,15 +2,11 @@ import { useQuery } from "react-query";
 import { getUserProfileInfo } from "../endpoints/Profile";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
-import { Clock, BookOpen, Target, Badge, Award } from "lucide-react";
+import { Clock, BookOpen } from "lucide-react";
 import { useAuth } from "@/Context/useAuth";
 
 const ProfilePage = () => {
-  const { user, logout } = useAuth();
-
-  const handleLogOut = () => {
-    logout();
-  };
+  const { user } = useAuth();
 
   const {data: userProfileInfo} = useQuery("userProfileInfo", () => getUserProfileInfo(user?.user_id!), {
     enabled: !!user?.user_id,

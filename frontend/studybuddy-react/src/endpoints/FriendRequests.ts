@@ -1,8 +1,6 @@
 import axios from "axios";
 import { FriendRequest, GroupInvite } from "../Models/RequestsAndInvites";
 import { Buddy } from "../Models/StudyBuddy";
-import { fr } from "date-fns/locale";
-import { useToast } from "@/hooks/use-toast";
 
 export const getFriendRequestsAndGroupInvites = async (userId: number) => {
   

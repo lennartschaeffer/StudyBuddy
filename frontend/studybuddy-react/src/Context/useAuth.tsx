@@ -100,7 +100,7 @@ export const UserProvider = ({ children }: Props) => {
   const loginUser = async (email: string, password: string) => {
     axios.defaults.withCredentials = true;
     try {
-      const res = await axios.post(
+      await axios.post(
         `${import.meta.env.VITE_API_URL}/auth/login`,
         {
           email: email,

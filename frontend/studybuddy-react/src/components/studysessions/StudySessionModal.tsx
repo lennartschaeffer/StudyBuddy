@@ -1,9 +1,5 @@
-import axios from "axios";
-import { useEffect, useState } from "react";
-import { IoLibrary } from "react-icons/io5";
-import { API_URL } from "../../apiRoute";
+import { useState } from "react";
 import { useAuth } from "../../Context/useAuth";
-import { Location } from "../../Models/Map";
 import {
   Dialog,
   DialogClose,
@@ -23,19 +19,12 @@ import { BookOpen, Trash } from "lucide-react";
 import { useMutation, useQueryClient } from "react-query";
 import { startSoloStudySession } from "@/endpoints/StudySessions";
 
-interface StudySessionModalProps {
-  show: boolean;
-  onClose: () => void;
-  onStartSession: (initialLoad: boolean) => void;
-}
 
 const StudySessionModal = () => {
   const [time, setTime] = useState<string>("");
   const [sessionName, setSessionName] = useState<string>("");
-  const [showChecklistInput, setShowChecklistInput] = useState<boolean>(false);
   const [task, setTask] = useState<string>("");
   const [checklist, setChecklist] = useState<string[]>([]);
-  const [location, setLocation] = useState<Location>();
   const { user } = useAuth();
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -66,7 +55,7 @@ const StudySessionModal = () => {
       onError: (error) => {
         toast({
           title: "Error.",
-          description: "Failed to start session.",
+          description: "Failed to start session."+error,
         });
       },
       

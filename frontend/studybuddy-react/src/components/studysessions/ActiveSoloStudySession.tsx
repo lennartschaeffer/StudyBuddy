@@ -2,15 +2,10 @@ import React from "react";
 import { SoloStudySession } from "../../Models/StudySession";
 import { UserProfile } from "../../Models/User";
 import { useMutation, useQueryClient } from "react-query";
-import {
-  completeActiveSessionEarly,
-  completeActiveStudySession,
-  completeTask,
-} from "../../endpoints/StudySessions";
-import { time } from "console";
+import { completeActiveStudySession, completeTask } from "../../endpoints/StudySessions";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
-import { Check, CheckCheckIcon, CheckCircle, CheckCircle2 } from "lucide-react";
+import { Check, CheckCircle2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 interface ActiveSoloStudySessionProps {
   soloSession: SoloStudySession;
@@ -38,7 +33,7 @@ const ActiveSoloStudySession: React.FC<ActiveSoloStudySessionProps> = ({
       onError: (error) => {
         toast({
           title: "Error.",
-          description: "Could not end session.",
+          description: "Could not end session."+ error,
         })
       },
     }
@@ -55,7 +50,7 @@ const ActiveSoloStudySession: React.FC<ActiveSoloStudySessionProps> = ({
     onError: (error) => {
       toast({
         title: "Error.",
-        description: "Could not complete task.",
+        description: "Could not complete task."+ error,
       })
     },
   });
