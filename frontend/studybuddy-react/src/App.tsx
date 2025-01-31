@@ -1,10 +1,7 @@
 import { Outlet } from "react-router-dom";
 import "./App.css";
 import { QueryClient, QueryClientProvider } from "react-query";
-import { useAuth, UserProvider } from "./Context/useAuth";
-import { useEffect } from "react";
-import { io } from "socket.io-client";
-import { API_URL } from "./apiRoute";
+import { UserProvider } from "./Context/useAuth";
 import { FriendsAndInvitesProvider } from "./Context/useGetFriendsAndInvites";
 import { StudyGroupProvider } from "./Context/useGetStudyGroups";
 import { ThemeProvider } from "./components/lightdarkmodes/theme-provider";
@@ -13,12 +10,6 @@ const queryClient = new QueryClient();
 
 function App() {
   
-  const socket = io(API_URL);
-  useEffect(() => {
-    socket.on("receive_message", (data) => {
-      
-    });
-  }, [socket]);
   
   return (
     <>
