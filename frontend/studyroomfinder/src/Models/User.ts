@@ -16,4 +16,5 @@ export type UserProfileInfo = {
     totalStudyTime: string;
     numberOfStudyGroups: number;
     numberOfStudySessions: number;
+    averageStudyTime: string;
 }

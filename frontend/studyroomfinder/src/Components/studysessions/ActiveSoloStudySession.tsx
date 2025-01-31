@@ -1,23 +1,17 @@
 import React from "react";
 import { SoloStudySession } from "../../Models/StudySession";
-import { MdOutlineTimer } from "react-icons/md";
-import { format, parseISO } from "date-fns";
-import { VscChecklist } from "react-icons/vsc";
 import { UserProfile } from "../../Models/User";
-import { IoIosCheckmark } from "react-icons/io";
-import { FaCheckCircle } from "react-icons/fa";
-import { GiNightSleep } from "react-icons/gi";
 import { useMutation, useQueryClient } from "react-query";
 import {
   completeActiveSessionEarly,
   completeActiveStudySession,
   completeTask,
 } from "../../endpoints/StudySessions";
-import { toast } from "react-toastify";
 import { time } from "console";
 import { Card, CardHeader, CardTitle, CardContent } from ".././ui/card";
 import { Button } from ".././ui/button";
 import { Check, CheckCheckIcon, CheckCircle, CheckCircle2 } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 interface ActiveSoloStudySessionProps {
   soloSession: SoloStudySession;
   timeLeft: string;
@@ -29,17 +23,23 @@ const ActiveSoloStudySession: React.FC<ActiveSoloStudySessionProps> = ({
   user,
 }) => {
   const queryClient = useQueryClient();
-
+  const {toast} = useToast()
   const completeSessionMutation = useMutation(
     ({ sessionId, sessionType }: { sessionId: number; sessionType: string }) =>
       completeActiveStudySession(sessionId, sessionType),
     {
       onSuccess: () => {
         queryClient.invalidateQueries(["activeStudySession", user?.user_id]);
-        toast("Session completed. Good work!");
+        toast({
+          title: "Session completed.",
+          description: "Good work!",
+        })
       },
       onError: (error) => {
-        toast("Error: Could not end session. " + error);
+        toast({
+          title: "Error.",
+          description: "Could not end session.",
+        })
       },
     }
   );
@@ -47,10 +47,16 @@ const ActiveSoloStudySession: React.FC<ActiveSoloStudySessionProps> = ({
   const completeTaskMutation = useMutation(completeTask, {
     onSuccess: () => {
       queryClient.invalidateQueries(["activeStudySession", user?.user_id]);
-      toast.success("Task completed. Nice work!");
+      toast({
+        title: "Task completed.",
+        description: "Good work!",
+      })
     },
     onError: (error) => {
-      toast.error("Error handling task completion." + error);
+      toast({
+        title: "Error.",
+        description: "Could not complete task.",
+      })
     },
   });
 

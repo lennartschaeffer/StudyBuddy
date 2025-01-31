@@ -111,6 +111,11 @@ const getAvgStudySessionTime = async (userId: string) => {
   try {
     //get times
     const times = await prisma.solo_studysessions.findMany({
+      where: {
+        users: {
+            user_id: Number(userId)
+        }
+      },
       select: {
         session_id: true,
         start_time: true,

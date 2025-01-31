@@ -1,5 +1,4 @@
 import React, { useEffect, useState } from "react";
-import { toast, ToastContainer } from "react-toastify";
 import { useAuth } from "../../Context/useAuth";
 import { IoPersonCircleSharp } from "react-icons/io5";
 import { useGetFriendsAndInvites } from "../../Context/useGetFriendsAndInvites";

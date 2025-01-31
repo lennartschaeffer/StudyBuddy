@@ -13,11 +13,12 @@ import {
   completeActiveStudySession,
   completeTask,
 } from "../../endpoints/StudySessions";
-import { toast } from "react-toastify";
 import { FaUserGroup } from "react-icons/fa6";
 import { CheckCircle2, Check } from "lucide-react";
-import { Card, CardHeader, CardTitle, CardContent } from ".././ui/card";
-import { Button } from ".././ui/button";
+import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
+import { Button } from "../ui/button";
+import { Toaster } from "../ui/toaster";
+import { useToast } from "@/hooks/use-toast";
 interface ActiveSoloStudySessionProps {
   groupSession: GroupStudySession;
   user: UserProfile;
@@ -30,6 +31,7 @@ const ActiveGroupStudySession: React.FC<ActiveSoloStudySessionProps> = ({
 }) => {
   const queryClient = useQueryClient();
   const [timeLeft, setTimeLeft] = useState<string>("");
+  const {toast} = useToast();
 
   const completeSessionMutation = useMutation(
     ({ sessionId, sessionType }: { sessionId: number; sessionType: string }) =>
@@ -37,10 +39,17 @@ const ActiveGroupStudySession: React.FC<ActiveSoloStudySessionProps> = ({
     {
       onSuccess: () => {
         queryClient.invalidateQueries(["activeStudySession", user?.user_id]);
-        toast("Session completed. Good work!");
+        toast({
+          title: "Session completed.",
+          description: "Good work!",
+        })
       },
       onError: (error) => {
-        toast("Error: Could not end session. " + error);
+        console.error(error);
+        toast({
+          title: "Error.",
+          description: "Could not end session.",
+        })
       },
     }
   );
@@ -115,6 +124,7 @@ const ActiveGroupStudySession: React.FC<ActiveSoloStudySessionProps> = ({
         </CardContent>
       </Card>
       <Button variant="destructive" className="w-full mt-3" onClick={onLeave}>Leave</Button>
+      <Toaster />
     </div>
   );
 };

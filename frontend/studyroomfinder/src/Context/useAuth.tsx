@@ -2,9 +2,7 @@ import React, { createContext, useEffect, useState } from "react";
 import { UserProfile } from "../Models/User";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
-import { toast } from "react-toastify";
 import { useToast } from "@/hooks/use-toast";
-
 
 type UserContextType = {
   user: UserProfile | null;
@@ -20,6 +18,7 @@ type UserContextType = {
   loginUser: (email: string, password: string) => void;
   logout: () => void;
   isLoggedIn: () => boolean;
+  error: string | null;
 };
 
 type Props = { children: React.ReactNode };
@@ -28,9 +27,10 @@ const UserContext = createContext<UserContextType>({} as UserContextType);
 
 export const UserProvider = ({ children }: Props) => {
   const navigate = useNavigate();
-  const {toast} = useToast();
+  const { toast } = useToast();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isReady, setIsReady] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchUser = async () => {
     try {
@@ -76,37 +76,37 @@ export const UserProvider = ({ children }: Props) => {
     university: string,
     degree: string
   ) => {
-    await axios
-      .post(`${import.meta.env.VITE_API_URL}/auth/signup`, {
-        username: username,
-        password: password,
-        first_name: firstName,
-        last_name: lastName,
-        email: email,
-        university: university,
-        degree: degree,
-      })
-      .then((res) => {
-        console.log(res);
-        navigate("/verify");
-      })
-      .catch((err) => {
-        console.log(err);
-        toast({
-          title: "Error.",
-          description: err.response.data,
-        })
-      });
+    try {
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/auth/signup`,
+        {
+          username: username,
+          password: password,
+          first_name: firstName,
+          last_name: lastName,
+          email: email,
+          university: university,
+          degree: degree,
+        }
+      );
+      console.log(res);
+      navigate("/verify");
+    } catch (error: any) {
+      console.log("Error registering user: ", error);
+      setError(error.response.data);
+    }
   };
 
   const loginUser = async (email: string, password: string) => {
     axios.defaults.withCredentials = true;
     try {
-      const res = await axios
-      .post(`${import.meta.env.VITE_API_URL}/auth/login`, {
-        email: email,
-        password: password,
-      })
+      const res = await axios.post(
+        `${import.meta.env.VITE_API_URL}/auth/login`,
+        {
+          email: email,
+          password: password,
+        }
+      );
       await fetchUser();
       navigate("/home");
     } catch (error) {
@@ -114,7 +114,7 @@ export const UserProvider = ({ children }: Props) => {
       toast({
         title: "Error.",
         description: "Invalid Username or Password",
-      })
+      });
     }
   };
 
@@ -123,9 +123,12 @@ export const UserProvider = ({ children }: Props) => {
   };
 
   const logout = async () => {
-    
     await axios
-      .post(`${import.meta.env.VITE_API_URL}/auth/logout`, {}, { withCredentials: true })
+      .post(
+        `${import.meta.env.VITE_API_URL}/auth/logout`,
+        {},
+        { withCredentials: true }
+      )
       .then((res) => {
         console.log(res);
         setUser(null);
@@ -138,7 +141,7 @@ export const UserProvider = ({ children }: Props) => {
 
   return (
     <UserContext.Provider
-      value={{ loginUser, user, logout, isLoggedIn, registerUser }}
+      value={{ loginUser, user, logout, isLoggedIn, registerUser, error }}
     >
       {isReady ? children : null}
     </UserContext.Provider>

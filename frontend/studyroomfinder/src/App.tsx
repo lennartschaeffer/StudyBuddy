@@ -5,7 +5,6 @@ import { useAuth, UserProvider } from "./Context/useAuth";
 import { useEffect } from "react";
 import { io } from "socket.io-client";
 import { API_URL } from "./apiRoute";
-import { toast } from "react-toastify";
 import { FriendsAndInvitesProvider } from "./Context/useGetFriendsAndInvites";
 import { StudyGroupProvider } from "./Context/useGetStudyGroups";
 import { ThemeProvider } from "./components/lightdarkmodes/theme-provider";
@@ -17,7 +16,7 @@ function App() {
   const socket = io(API_URL);
   useEffect(() => {
     socket.on("receive_message", (data) => {
-      toast.dark(data.message);
+      
     });
   }, [socket]);
   

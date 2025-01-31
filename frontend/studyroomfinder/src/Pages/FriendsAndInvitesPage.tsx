@@ -102,9 +102,9 @@ const FriendsAndInvitesPage = () => {
   );
 
   return (
-    <div className="container mx-auto px-4 py-8 h-100 d-flex flex-column justify-content-center align-items-center">
+    <div className="container mx-auto md:px-4 py-8 h-100 d-flex flex-column justify-center items-center">
       <div className="">
-        <Card className="w-[400px]">
+        <Card className="md:w-[400px] w-[300px]">
           <CardHeader className="">
             <CardTitle className="text-sm font-medium flex items-center justify-center gap-2 pb-2">
               <h2 className="text-2xl font-semibold m-0 text-center">
@@ -113,9 +113,9 @@ const FriendsAndInvitesPage = () => {
               <Search />
             </CardTitle>
           </CardHeader>
-          <CardContent>
-            <Tabs defaultValue="friends">
-              <TabsList className="mb-4">
+          <CardContent className="md:overflow-hidden sm:overflow-scroll">
+            <Tabs defaultValue="friends" className="d-flex flex-col justify-center items-center gap-3 sm:mt-4 mt-0">
+              <TabsList className="mb-4 flex-col gap-2 md:flex-row">
                 <TabsTrigger value="friends">Friends</TabsTrigger>
                 <TabsTrigger value="friendrequests">
                   Friend Requests
@@ -203,7 +203,7 @@ const FriendsAndInvitesPage = () => {
                 </ScrollArea>
               </TabsContent>
               <TabsContent value="groupinvites">
-                <ScrollArea className="h-[300px]">
+                <ScrollArea className="max-h-[300px]">
                   {isLoading && <LoadingSymbol />}
                   {friendsAndInvites?.groupInvites?.length === 0 && (
                     <p className="text-center">No group invites.</p>

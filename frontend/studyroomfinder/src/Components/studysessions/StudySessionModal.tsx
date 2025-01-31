@@ -3,7 +3,6 @@ import { useEffect, useState } from "react";
 import { IoLibrary } from "react-icons/io5";
 import { API_URL } from "../../apiRoute";
 import { useAuth } from "../../Context/useAuth";
-import { toast } from "react-toastify";
 import { Location } from "../../Models/Map";
 import {
   Dialog,
@@ -21,6 +20,8 @@ import { Button } from "../ui/button";
 import { DateTimePicker } from "../ui/datetime-picker";
 import { useToast } from "@/hooks/use-toast";
 import { BookOpen, Trash } from "lucide-react";
+import { useMutation, useQueryClient } from "react-query";
+import { startSoloStudySession } from "@/endpoints/StudySessions";
 
 interface StudySessionModalProps {
   show: boolean;
@@ -37,40 +38,40 @@ const StudySessionModal = () => {
   const [location, setLocation] = useState<Location>();
   const { user } = useAuth();
   const { toast } = useToast();
+  const queryClient = useQueryClient();
 
-  const handleStartSession = async () => {
-    if (!time) {
+  const handleStartSession = () => {
+    if(!sessionName || !time) {
       toast({
         title: "Error.",
-        description: "Please fill in all fields.",
+        description: "Please fill in a time and a name.",
       });
       return;
     }
-
-    await axios
-      .post(`${API_URL}/studysessions`, {
-        session_name: sessionName,
-        end_time: new Date(time).toISOString(),
-        user_id: user?.user_id,
-        checklist: checklist,
-        lat: location?.lat,
-        lon: location?.lon,
-      })
-      .then((res) => {
+    startSoloSessionMutation.mutate();
+  }
+  const startSoloSessionMutation = useMutation(
+    () => startSoloStudySession(sessionName, time, user?.user_id!, checklist),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries("activeStudySession");
+        toast({
+          title: "Started Session.",
+          description: "Enjoy your study session.",
+        });
+        setSessionName("");
         setTime("");
         setChecklist([]);
-        setTask("");
-        // onStartSession(true);
-        // onClose();
-      })
-      .catch((err) => {
-        console.log(err);
+      },
+      onError: (error) => {
         toast({
           title: "Error.",
           description: "Failed to start session.",
         });
-      });
-  };
+      },
+      
+    }
+  )
 
   // //get user geolocation
   // useEffect(() => {

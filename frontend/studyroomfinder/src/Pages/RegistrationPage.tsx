@@ -2,13 +2,14 @@ import { useState } from "react";
 // import Button from "react-bootstrap/Button";
 // import Form from "react-bootstrap/Form";
 import { useAuth } from "../Context/useAuth";
-import { toast, ToastContainer } from "react-toastify";
 import { BookOpen } from "lucide-react";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Link } from "react-router-dom";
+import { useToast } from "@/hooks/use-toast";
+import { Toaster } from "@/components/ui/toaster";
 
 const RegistrationPage = () => {
   const [username, setUserName] = useState("");
@@ -18,15 +19,26 @@ const RegistrationPage = () => {
   const [university, setUniversity] = useState("");
   const [degree, setDegree] = useState("");
   const [email, setEmail] = useState("");
-  const { registerUser } = useAuth();
+  const { registerUser, error } = useAuth();
+  const { toast } = useToast();
 
   const handleRegister = async (e: any) => {
     e.preventDefault();
     if (!username || !password || !firstName || !lastName || !email) {
-      toast.error("Please fill out all fields.");
+      toast({
+        title: "Error.",
+        description: "Please fill in all required fields.",
+      })
       return;
     }
     registerUser(username, password, firstName, lastName, email, university, degree);
+    if (error) {
+      console.log("Error: ", error);
+      toast({
+        title: "Error.",
+        description: error,
+      })
+    }
   };
   return (
     <div className="flex flex-col min-h-screen">
@@ -99,6 +111,7 @@ const RegistrationPage = () => {
       <footer className="flex flex-col gap-2 sm:flex-row py-6 w-full shrink-0 items-center px-4 md:px-6 border-t">
         <p className="text-xs text-gray-500 dark:text-gray-400">© 2024 StudyBuddy. All rights reserved.</p>
       </footer>
+      <Toaster />
     </div>
   );
 };

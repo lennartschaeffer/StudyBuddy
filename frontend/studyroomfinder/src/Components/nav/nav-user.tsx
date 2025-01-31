@@ -26,7 +26,6 @@ import {
 } from "@/components/ui/sidebar";
 import { useAuth } from "@/Context/useAuth";
 import { useState } from "react";
-import FriendRequests from "../friendsandinvites/FriendRequests";
 import { Link } from "react-router-dom";
 
 export function NavUser() {
@@ -85,7 +84,7 @@ export function NavUser() {
               <Link to={"/friendsandinvites"}>
                 <DropdownMenuItem>
                   <Bell />
-                  Notifications
+                  Friends & Invites
                 </DropdownMenuItem>
               </Link>
             </DropdownMenuGroup>
@@ -96,10 +95,6 @@ export function NavUser() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-        <FriendRequests
-          show={showNotifications}
-          setShow={setShowNotifications}
-        />
       </SidebarMenuItem>
     </SidebarMenu>
   );

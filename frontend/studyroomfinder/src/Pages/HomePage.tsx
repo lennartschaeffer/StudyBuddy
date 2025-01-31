@@ -42,7 +42,7 @@ const HomePage = () => {
           <Link to={"/studysession"}>
             <Button
               variant="outline"
-              className="flex flex-col items-center justify-center h-24 w-full text-lg"
+              className="flex flex-col items-center justify-center h-24 w-full md:text-lg"
             >
               <BookOpen className="h-8 w-8 mb-2" />
               Start Session
@@ -51,7 +51,7 @@ const HomePage = () => {
           <Link to={"/map"}>
             <Button
               variant="outline"
-              className="flex flex-col items-center justify-center h-24 text-lg w-full"
+              className="flex flex-col items-center justify-center h-24 md:text-lg w-full"
             >
               <MapPin className="h-8 w-8 mb-2" />
               Find Study Spots
@@ -60,16 +60,16 @@ const HomePage = () => {
           <Link to={"/studygroups"}>
             <Button
               variant="outline"
-              className="flex flex-col items-center justify-center h-24 text-lg w-full"
+              className="flex flex-col items-center justify-center h-24 md:text-lg w-full"
             >
               <Users className="h-8 w-8 mb-2" />
               Create Study Group
             </Button>
           </Link>
-          <Link to={"/studybuddies"}>
+          <Link to={"/findbuddies"}>
             <Button
               variant="outline"
-              className="flex flex-col items-center justify-center h-24 text-lg w-full"
+              className="flex flex-col items-center justify-center h-24 md:text-lg w-full"
             >
               <UserPlus className="h-8 w-8 mb-2" />
               Find Study Buddies

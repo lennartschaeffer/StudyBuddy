@@ -131,3 +131,19 @@ export const completeActiveSessionEarly = async (
     throw error;
   }
 };
+
+export const startSoloStudySession = async(sessionName: string, time: string, userId: number, checklist: string[]) => {
+  try {
+    const res = await axios
+      .post(`${import.meta.env.VITE_API_URL}/studysessions`, {
+        session_name: sessionName,
+        end_time: new Date(time).toISOString(),
+        user_id: userId,
+        checklist: checklist,
+      })
+      return res.data
+  } catch (error) {
+    console.error("Failed to start solo session")
+    throw error;
+  }
+}

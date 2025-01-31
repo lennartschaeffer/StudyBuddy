@@ -1,7 +1,11 @@
 import React, { useState } from "react";
-import { QueryClientProvider, useMutation, useQuery, useQueryClient } from "react-query";
+import {
+  QueryClientProvider,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from "react-query";
 import { createGroupStudySession } from "../../endpoints/StudyGroups";
-import { toast } from "react-toastify";
 import {
   Dialog,
   DialogClose,
@@ -17,6 +21,7 @@ import { Label } from "../ui/label";
 import { Input } from "../ui/input";
 import { DateTimePicker } from "../ui/datetime-picker";
 import { Button } from "../ui/button";
+import { useToast } from "@/hooks/use-toast";
 
 interface SessionSchedulingModalProps {
   show: boolean;
@@ -34,16 +39,24 @@ const SessionSchedulingModal: React.FC<SessionSchedulingModalProps> = ({
   const [startDate, setStartDate] = useState("");
   const [endDate, setEndDate] = useState("");
   const [sessionName, setSessionName] = useState("");
-    const queryClient = useQueryClient();
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
   const handleScheduleSessionMutation = useMutation(
     () => createGroupStudySession(groupId, sessionName, startDate, endDate),
     {
       onSuccess: () => {
         queryClient.invalidateQueries("upcomingSessions");
+        toast({
+          title: "Session scheduled.",
+          description: "Study session has been scheduled.",
+        });
         setShow(false);
       },
       onError: (error) => {
-        toast.error("Error creating group study session " + error);
+        toast({
+          title: "Error.",
+          description: "Failed to create group study session.",
+        });
         console.error("Failed to create group study session:", error);
       },
     }
@@ -65,7 +78,7 @@ const SessionSchedulingModal: React.FC<SessionSchedulingModalProps> = ({
               onChange={(e) => setSessionName(e.target.value)}
               placeholder="Session Name"
             />
-          <Label className="text-left mb-1">Start Time</Label>
+            <Label className="text-left mb-1">Start Time</Label>
             <DateTimePicker
               onSelectDate={(date: Date) => setStartDate(date.toISOString())}
             />
@@ -77,9 +90,7 @@ const SessionSchedulingModal: React.FC<SessionSchedulingModalProps> = ({
         </div>
         <DialogFooter>
           <DialogClose asChild>
-            <Button
-              onClick={() => handleScheduleSessionMutation.mutate()}
-            >
+            <Button onClick={() => handleScheduleSessionMutation.mutate()}>
               Start
             </Button>
           </DialogClose>

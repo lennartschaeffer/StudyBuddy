@@ -83,7 +83,7 @@ const getStudySpotLocations = async (lat: Number, lon: Number) => {
     //wait for all the promises to resolve
     const results = await Promise.all(studySpots);
     //filter out null results in case of any error
-    const locations = results.filter((spot) => spot !== null);
+    const locations = results.filter((spot: StudySpot) => spot !== null);
     return locations;
   } catch (error) {
     console.error(error);
