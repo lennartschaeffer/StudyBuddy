@@ -60,7 +60,7 @@ const ActiveSoloStudySession: React.FC<ActiveSoloStudySessionProps> = ({
       <Card className="mb-6">
         <CardHeader>
           <CardTitle className="text-2xl font-bold text-center">
-            Active Study Session
+            {soloSession?.session_name} - Active
           </CardTitle>
         </CardHeader>
         <CardContent>
