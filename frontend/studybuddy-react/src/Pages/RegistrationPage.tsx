@@ -75,7 +75,7 @@ const RegistrationPage = () => {
                    onChange={(e) => setUserName(e.target.value)} required />
                 </div>
                 <div className="flex flex-col space-y-1.5">
-                  <Label htmlFor="password">Password*</Label>
+                  <Label htmlFor="password">Password (Minimum of 6 characters)</Label>
                   <Input
                     id="password"
                     name="password"

@@ -292,13 +292,13 @@ const getRecentSoloStudySessions = async (user_id: string) => {
   
   const recentSessions = await prisma.solo_studysessions.findMany({
     where: {
-      user_id: Number(user_id), // Filter by user_id
-      end_time: { lt: new Date().toISOString() }, // Ensure the session has ended
+      user_id: Number(user_id), 
+      end_time: { lt: new Date().toISOString() },
     },
     orderBy: {
-      start_time: 'desc', // Order by start_time in descending order
+      start_time: 'desc',
     },
-    take: 2, // Limit to 2 results
+    take: 8,
   });
 
   return recentSessions;
@@ -318,7 +318,7 @@ const getRecentGroupStudySessions = async (user_id: string) => {
     orderBy: {
       start_time: 'desc', 
     },
-    take: 2, 
+    take: 8, 
     select: {
       studygroups: {
         select: {
