@@ -1,5 +1,6 @@
 import { AppSidebar } from "@/components/nav/app-sidebar"
 import { Separator } from "@/components/ui/separator"
+import { Analytics } from '@vercel/analytics/next';
 import {
   SidebarInset,
   SidebarProvider,
@@ -23,6 +24,7 @@ export default function Page({ children }: PageProps) {
         </header>
         <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
           {children}
+          <Analytics />
           <Toaster />
         </div>
       </SidebarInset>
