@@ -166,6 +166,8 @@ export const startSoloStudySession = async (
         end_time: new Date(time).toISOString(),
         user_id: userId,
         checklist: checklist,
+      },{
+        withCredentials: true,
       }
     );
     return res.data;
@@ -175,13 +177,17 @@ export const startSoloStudySession = async (
   }
 };
 
-export const addTask = async (task_name: string, checklist_id: number) => {
+export const addTask = async (task_name: string, checklist_id: number, session_id: number) => {
   try {
     const res = await axios.post(
       `${import.meta.env.VITE_API_URL}/studysessions/addTask`,
       {
         task_name: task_name,
         checklist_id: checklist_id,
+        session_id: session_id,
+      },
+      {
+        withCredentials: true,
       }
     );
     return res.data;
@@ -199,7 +205,9 @@ export const removeTask = async (task: Task) => {
     const res = await axios.delete(
       `${import.meta.env.VITE_API_URL}/studysessions/removeTask/${
         task?.task_id
-      }`
+      }`,{
+        withCredentials: true,
+      }
     );
     return res.data;
   } catch (error) {

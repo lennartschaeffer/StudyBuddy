@@ -196,6 +196,7 @@ const ActiveSoloStudySession: React.FC<ActiveSoloStudySessionProps> = ({
           </Button>
           <AddTaskModal
             checklist_id={soloSession.checklist_id!}
+            session_id={soloSession.session_id!}
             show={showAddTaskModal}
             setShow={setShowAddTaskModal}
           />

@@ -18,17 +18,19 @@ interface AddTaskModalProps {
   show: boolean;
   setShow: React.Dispatch<React.SetStateAction<boolean>>;
   checklist_id: number;
+  session_id: number;
 }
 
 const AddTaskModal: React.FC<AddTaskModalProps> = ({
   show,
   setShow,
   checklist_id,
+  session_id
 }) => {
   const [taskName, setTaskName] = useState<string>("");
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const addTaskMutation = useMutation(() => addTask(taskName, checklist_id), {
+  const addTaskMutation = useMutation(() => addTask(taskName, checklist_id, session_id), {
     onSuccess: () => {
       queryClient.invalidateQueries("activeStudySession");
       setShow(false);
@@ -62,7 +64,8 @@ const AddTaskModal: React.FC<AddTaskModalProps> = ({
           </div>
         </div>
         <DialogFooter>
-          <Button onClick={() => addTaskMutation.mutate()}>Add</Button>
+          <Button onClick={() => {
+            addTaskMutation.mutate()}}>Add</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>
