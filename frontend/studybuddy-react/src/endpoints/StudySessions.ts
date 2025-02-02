@@ -4,8 +4,11 @@ import { GroupStudySession } from "../Models/StudySession";
 
 export const getActiveSession = async (userId: number) => {
   const res = await axios.get(
-    `${import.meta.env.VITE_API_URL}/studysessions/activeStudySession/${userId}`,{
-      withCredentials: true
+    `${
+      import.meta.env.VITE_API_URL
+    }/studysessions/activeStudySession/${userId}`,
+    {
+      withCredentials: true,
     }
   );
   console.log(res.data);
@@ -48,10 +51,12 @@ export const getActiveSession = async (userId: number) => {
 
 export const completeTask = async (task: Task) => {
   const res = await axios.put(
-    `${import.meta.env.VITE_API_URL}/studysessions/completeTask/${task?.task_id}`,
+    `${import.meta.env.VITE_API_URL}/studysessions/completeTask/${
+      task?.task_id
+    }`,
     {},
     {
-      withCredentials: true
+      withCredentials: true,
     }
   );
   return res.data;
@@ -66,10 +71,12 @@ export const completeActiveStudySession = async (
   }
   try {
     const res = await axios.put(
-      `${import.meta.env.VITE_API_URL}/studysessions/completeActiveStudySession/${session_id}/${session_type}`,
+      `${
+        import.meta.env.VITE_API_URL
+      }/studysessions/completeActiveStudySession/${session_id}/${session_type}`,
       {},
       {
-        withCredentials: true
+        withCredentials: true,
       }
     );
     return res.data;
@@ -83,24 +90,34 @@ export const getRecentStudySessions = async (userId: number) => {
   console.log("Fetching recent study sessions");
   try {
     const res = await axios.get(
-      `${import.meta.env.VITE_API_URL}/studysessions/recentStudySessions/${userId}`,
+      `${
+        import.meta.env.VITE_API_URL
+      }/studysessions/recentStudySessions/${userId}`,
       {
         withCredentials: true,
       }
     );
-    if(res.data.userSessions){
+    if (res.data.userSessions) {
       res.data.userSessions.forEach((session: SoloStudySession) => {
-        let startVsEndTime = new Date(session.end_time).getTime() - new Date(session.start_time).getTime();
+        let startVsEndTime =
+          new Date(session.end_time).getTime() -
+          new Date(session.start_time).getTime();
         let hours = Math.floor(startVsEndTime / (1000 * 60 * 60));
-        let minutes = Math.floor((startVsEndTime % (1000 * 60 * 60)) / (1000 * 60));
+        let minutes = Math.floor(
+          (startVsEndTime % (1000 * 60 * 60)) / (1000 * 60)
+        );
         session.totalTime = hours + "h " + minutes + "m";
       });
     }
-    if(res.data.groupSessions){
+    if (res.data.groupSessions) {
       res.data.groupSessions.forEach((session: GroupStudySession) => {
-        let startVsEndTime = new Date(session.end_time).getTime() - new Date(session.start_time).getTime();
+        let startVsEndTime =
+          new Date(session.end_time).getTime() -
+          new Date(session.start_time).getTime();
         let hours = Math.floor(startVsEndTime / (1000 * 60 * 60));
-        let minutes = Math.floor((startVsEndTime % (1000 * 60 * 60)) / (1000 * 60));
+        let minutes = Math.floor(
+          (startVsEndTime % (1000 * 60 * 60)) / (1000 * 60)
+        );
         session.totalTime = hours + "h " + minutes + "m";
       });
     }
@@ -121,8 +138,11 @@ export const completeActiveSessionEarly = async (
       throw new Error("Missing required fields");
     }
     const res = await axios.put(
-      `${import.meta.env.VITE_API_URL}/studysessions/completeActiveStudySessionEarly/${sessionId}/${sessionType}`,{
-        withCredentials: true
+      `${
+        import.meta.env.VITE_API_URL
+      }/studysessions/completeActiveStudySessionEarly/${sessionId}/${sessionType}`,
+      {
+        withCredentials: true,
       }
     );
     return res.data;
@@ -132,18 +152,58 @@ export const completeActiveSessionEarly = async (
   }
 };
 
-export const startSoloStudySession = async(sessionName: string, time: string, userId: number, checklist: string[]) => {
+export const startSoloStudySession = async (
+  sessionName: string,
+  time: string,
+  userId: number,
+  checklist: string[]
+) => {
   try {
-    const res = await axios
-      .post(`${import.meta.env.VITE_API_URL}/studysessions`, {
+    const res = await axios.post(
+      `${import.meta.env.VITE_API_URL}/studysessions`,
+      {
         session_name: sessionName,
         end_time: new Date(time).toISOString(),
         user_id: userId,
         checklist: checklist,
-      })
-      return res.data
+      }
+    );
+    return res.data;
   } catch (error) {
-    console.error("Failed to start solo session")
+    console.error("Failed to start solo session");
     throw error;
   }
-}
+};
+
+export const addTask = async (task_name: string, checklist_id: number) => {
+  try {
+    const res = await axios.post(
+      `${import.meta.env.VITE_API_URL}/studysessions/addTask`,
+      {
+        task_name: task_name,
+        checklist_id: checklist_id,
+      }
+    );
+    return res.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
+
+export const removeTask = async (task: Task) => {
+  try {
+    if (!task) {
+      return;
+    }
+    const res = await axios.delete(
+      `${import.meta.env.VITE_API_URL}/studysessions/removeTask/${
+        task?.task_id
+      }`
+    );
+    return res.data;
+  } catch (error) {
+    console.error(error);
+    throw error;
+  }
+};
