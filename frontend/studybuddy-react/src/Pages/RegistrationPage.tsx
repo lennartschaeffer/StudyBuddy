@@ -19,7 +19,7 @@ const RegistrationPage = () => {
   const [university, setUniversity] = useState("");
   const [degree, setDegree] = useState("");
   const [email, setEmail] = useState("");
-  const { registerUser, error } = useAuth();
+  const { registerUser } = useAuth();
   const { toast } = useToast();
 
   const handleRegister = async (e: any) => {
@@ -32,13 +32,6 @@ const RegistrationPage = () => {
       return;
     }
     registerUser(username, password, firstName, lastName, email, university, degree);
-    if (error) {
-      console.log("Error: ", error);
-      toast({
-        title: "Error.",
-        description: error,
-      })
-    }
   };
   return (
     <div className="flex flex-col min-h-screen">

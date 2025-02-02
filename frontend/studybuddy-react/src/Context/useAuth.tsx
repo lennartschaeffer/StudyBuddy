@@ -18,7 +18,6 @@ type UserContextType = {
   loginUser: (email: string, password: string) => void;
   logout: () => void;
   isLoggedIn: () => boolean;
-  error: string | null;
 };
 
 type Props = { children: React.ReactNode };
@@ -30,7 +29,6 @@ export const UserProvider = ({ children }: Props) => {
   const { toast } = useToast();
   const [user, setUser] = useState<UserProfile | null>(null);
   const [isReady, setIsReady] = useState<boolean>(false);
-  const [error, setError] = useState<string | null>(null);
 
   const fetchUser = async () => {
     try {
@@ -93,7 +91,10 @@ export const UserProvider = ({ children }: Props) => {
       navigate("/verify");
     } catch (error: any) {
       console.log("Error registering user: ", error);
-      setError(error.response.data);
+      toast({
+        title: "Error.",
+        description: error.response.data,
+      });
     }
   };
 
@@ -109,11 +110,11 @@ export const UserProvider = ({ children }: Props) => {
       );
       await fetchUser();
       navigate("/home");
-    } catch (error) {
+    } catch (error: any) {
       console.log(error);
       toast({
         title: "Error.",
-        description: "Invalid Username or Password",
+        description: error.response.data,
       });
     }
   };
@@ -141,7 +142,7 @@ export const UserProvider = ({ children }: Props) => {
 
   return (
     <UserContext.Provider
-      value={{ loginUser, user, logout, isLoggedIn, registerUser, error }}
+      value={{ loginUser, user, logout, isLoggedIn, registerUser }}
     >
       {isReady ? children : null}
     </UserContext.Provider>
