@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { GroupStudySession } from "../../Models/StudySession";
 import { UserProfile } from "../../Models/User";
 import { useMutation, useQueryClient } from "react-query";
-import { completeActiveStudySession } from "../../endpoints/StudySessions";
+import { completeActiveStudySession } from "../../controllers/StudySessionsController";
 import { Card, CardHeader, CardTitle, CardContent } from "../ui/card";
 import { Button } from "../ui/button";
 import { Toaster } from "../ui/toaster";

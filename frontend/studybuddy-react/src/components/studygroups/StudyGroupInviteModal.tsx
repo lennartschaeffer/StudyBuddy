@@ -2,7 +2,7 @@ import React from "react";
 import { useAuth } from "../../Context/useAuth";
 import { useGetFriendsAndInvites } from "../../Context/useGetFriendsAndInvites";
 import { useMutation, useQueryClient } from "react-query";
-import { inviteToStudyGroup } from "../../endpoints/StudyGroups";
+import { inviteToStudyGroup } from "../../controllers/StudyGroupsController";
 import {
   Dialog,
   DialogClose,

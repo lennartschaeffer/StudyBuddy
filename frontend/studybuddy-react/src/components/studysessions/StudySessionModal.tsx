@@ -17,7 +17,7 @@ import { DateTimePicker } from "../ui/datetime-picker";
 import { useToast } from "@/hooks/use-toast";
 import { BookOpen, Trash } from "lucide-react";
 import { useMutation, useQueryClient } from "react-query";
-import { startSoloStudySession } from "@/endpoints/StudySessions";
+import { startSoloStudySession } from "@/controllers/StudySessionsController";
 
 
 const StudySessionModal = () => {

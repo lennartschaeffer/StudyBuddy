@@ -1,5 +1,5 @@
 import { useQuery } from "react-query";
-import { getUserProfileInfo } from "../endpoints/Profile";
+import { getUserProfileInfo } from "../controllers/ProfileController";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Clock, BookOpen } from "lucide-react";

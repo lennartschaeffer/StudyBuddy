@@ -4,7 +4,7 @@ import { useAuth } from "../Context/useAuth";
 import { useQuery } from "react-query";
 import {
   getActiveSession,
-} from "../endpoints/StudySessions";
+} from "../controllers/StudySessionsController";
 import { format, parseISO } from "date-fns";
 import CreateGroupStudySessionModal from "../components/studysessions/CreateGroupStudySessionModal";
 import { GroupStudySession } from "../Models/StudySession";
@@ -36,9 +36,6 @@ const StudySessionPage = () => {
     {
       enabled: !!user?.user_id,
       refetchOnMount: true,
-      onSuccess: () => {
-        console.log("Fetched active study session.");
-      },
       onError: (error) => {
         console.error(error);
         toast({

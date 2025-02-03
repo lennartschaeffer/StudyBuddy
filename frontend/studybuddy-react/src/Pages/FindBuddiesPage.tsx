@@ -2,13 +2,13 @@ import { useState } from "react";
 import { Buddy } from "../Models/StudyBuddy";
 import { useAuth } from "../Context/useAuth";
 import { useMutation, useQuery, useQueryClient } from "react-query";
-import { getAllUsers } from "../endpoints/Users";
+import { getAllUsers } from "../controllers/UsersController";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Search, UserPlus } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Button } from "@/components/ui/button";
-import { sendFriendRequest } from "@/endpoints/FriendRequests";
+import { sendFriendRequest } from "@/controllers/FriendRequestsController";
 import { useToast } from "@/hooks/use-toast";
 
 const FindBuddiesPage = () => {

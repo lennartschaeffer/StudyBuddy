@@ -8,7 +8,7 @@ import { useAuth } from "../Context/useAuth";
 import { StudySpot, Location } from "../Models/Map";
 import { StudySessionMapInfo } from "../Models/StudySession";
 import { LoadingSymbol } from "./ui/LoadingSymbol";
-import { getStudySpots } from "@/endpoints/StudySpots";
+import { getStudySpots } from "@/controllers/StudySpotsController";
 import { useQuery } from "react-query";
 
 interface MapProps {

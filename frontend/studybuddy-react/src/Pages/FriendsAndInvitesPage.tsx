@@ -9,7 +9,7 @@ import {
   removeFriend,
   respondToFriendRequest,
   respondToGroupInvite,
-} from "@/endpoints/FriendRequests";
+} from "@/controllers/FriendRequestsController";
 import { useToast } from "@/hooks/use-toast";
 import { FriendRequest, GroupInvite } from "@/Models/RequestsAndInvites";
 import { Buddy } from "@/Models/StudyBuddy";

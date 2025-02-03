@@ -1,7 +1,7 @@
 import { useAuth } from "../Context/useAuth";
 import { Link } from "react-router-dom";
 import { useQuery } from "react-query";
-import { getRecentStudySessions } from "../endpoints/StudySessions";
+import { getRecentStudySessions } from "../controllers/StudySessionsController";
 import { GroupStudySession, SoloStudySession } from "../Models/StudySession";
 import { BookOpen, MapPin, Users, UserPlus, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";

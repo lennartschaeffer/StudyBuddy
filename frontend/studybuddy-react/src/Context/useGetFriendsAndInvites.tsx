@@ -2,7 +2,7 @@ import { createContext, useContext } from "react";
 import { FriendsAndInvites } from "../Models/RequestsAndInvites";
 import { useAuth } from "./useAuth";
 import { useQuery } from "react-query";
-import { getFriendRequestsAndGroupInvites } from "../endpoints/FriendRequests";
+import { getFriendRequestsAndGroupInvites } from "../controllers/FriendRequestsController";
 
 type FriendsAndInvitesContext = {
   friendsAndInvites: FriendsAndInvites | undefined;

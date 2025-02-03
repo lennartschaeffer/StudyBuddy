@@ -3,7 +3,7 @@ import {
   useMutation,
   useQueryClient,
 } from "react-query";
-import { createStudyGroup } from "../../endpoints/StudyGroups";
+import { createStudyGroup } from "../../controllers/StudyGroupsController";
 import {
   Dialog,
   DialogClose,

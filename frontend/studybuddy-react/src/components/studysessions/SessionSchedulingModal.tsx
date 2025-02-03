@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useMutation, useQueryClient } from "react-query";
-import { createGroupStudySession } from "../../endpoints/StudyGroups";
+import { createGroupStudySession } from "../../controllers/StudyGroupsController";
 import {
   Dialog,
   DialogClose,

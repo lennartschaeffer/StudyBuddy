@@ -11,7 +11,7 @@ import {
 import { Input } from "../ui/input";
 import { Label } from "../ui/label";
 import { useMutation, useQueryClient } from "react-query";
-import { addTask } from "@/endpoints/StudySessions";
+import { addTask } from "@/controllers/StudySessionsController";
 import { useToast } from "@/hooks/use-toast";
 
 interface AddTaskModalProps {

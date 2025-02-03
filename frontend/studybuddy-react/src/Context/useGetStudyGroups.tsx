@@ -3,7 +3,7 @@ import { StudyGroup } from "../Models/StudyGroup";
 import { Props } from "./useGetFriendsAndInvites";
 import { useAuth } from "./useAuth";
 import { useQuery } from "react-query";
-import { getStudyGroups } from "../endpoints/StudyGroups";
+import { getStudyGroups } from "../controllers/StudyGroupsController";
 
 type StudyGroupsContext = {
     studyGroups: StudyGroup[] | undefined;

@@ -4,7 +4,7 @@ import CreateStudyGroupModal from "../components/studygroups/CreateStudyGroupMod
 import { useQuery } from "react-query";
 import {
   getUpcomingGroupSessions,
-} from "../endpoints/StudyGroups";
+} from "../controllers/StudyGroupsController";
 import SessionSchedulingModal from "../components/studysessions/SessionSchedulingModal";
 import { useGetStudyGroups } from "../Context/useGetStudyGroups";
 import { GroupStudySession } from "../Models/StudySession";
