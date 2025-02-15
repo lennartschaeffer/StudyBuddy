@@ -1,7 +1,7 @@
-import { Button } from "@/components/ui/button";
-import FeatureCard from "@/components/welcomepage/FeatureCard";
-import { BookOpen, Clock, MapPin, Users } from "lucide-react";
-import { Link } from "react-router-dom";
+// import { Button } from "@/components/ui/button";
+// import FeatureCard from "@/components/welcomepage/FeatureCard";
+// import { BookOpen, Clock, MapPin, Users } from "lucide-react";
+// import { Link } from "react-router-dom";
 const WelcomePage = () => {
   return (
     <>
