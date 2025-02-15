@@ -97,12 +97,12 @@ const authLogin = async (email: string, password: string) => {
     });
     if (error) {
       console.log(error);
-      throw new Error("Error logging in"+ error);
+      throw new Error(error.message);
     }
     return data;
-  } catch (error) {
+  } catch (error: any) {
     console.log(error);
-    throw new Error("Error logging in");
+    throw new Error(error.message);
   }
 };
 
@@ -125,7 +125,7 @@ export const login = async (req: Request, res: Response) => {
     res.status(200).json({user: user, message: "Logged in successfully"});
   } catch (error) {
     console.log(error);
-    res.status(500).send("Error logging in");
+    res.status(500).send("Login Error. "+error);
   }
 };
 

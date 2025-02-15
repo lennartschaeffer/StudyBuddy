@@ -4,14 +4,12 @@ import { supabase } from "../supabaseClient";
 import { group, log } from "console";
 import prisma from "../prismaClient";
 
-
 const createStudySession = async (req: Request, res: Response, io: Server) => {
   try {
     const { session_name, end_time, user_id, checklist, lat, lon } = req.body;
     let checklist_id: any = null;
     //start transaction
     await prisma.$transaction(async (prisma) => {
-
       // Create the checklist and tasks
       if (checklist.length > 0) {
         const newChecklist = await prisma.studysession_checklists.create({
@@ -42,13 +40,75 @@ const createStudySession = async (req: Request, res: Response, io: Server) => {
           lon: lon,
         },
       });
-    }
-    );
+    });
 
     res.status(200).send("Study session created successfully");
   } catch (error) {
     console.error(error);
     res.status(500).send("Database error");
+  }
+};
+
+export const addTask = async (req: Request, res: Response) => {
+  try {
+    const { task_name, checklist_id, session_id } = req.body;
+    if (!task_name || !session_id) {
+      res.status(401).send("Error. invalid task request");
+      return;
+    }
+
+    //if they started with an empty list, we need to create the list first before we can add to it
+    await prisma.$transaction(async (prisma) => {
+      let newChecklistId = null;
+      if (!checklist_id) {
+        const newChecklist = await prisma.studysession_checklists.create({
+          data: {},
+        });
+        newChecklistId = newChecklist.checklist_id;
+      }
+      await prisma.studysession_tasks.create({
+        data: {
+          task_name: task_name,
+          checklist_id: newChecklistId ?? checklist_id,
+          task_completed: false,
+        },
+      });
+      //update the session with the new checklist id if there wasnt one before
+      if (!checklist_id) {
+        await prisma.solo_studysessions.update({
+          where: {
+            session_id: session_id,
+          },
+          data: {
+            checklist_id: newChecklistId,
+          },
+        });
+      }
+    });
+    
+    res.status(200).send("Task Created Succesfully.");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Database error.");
+  }
+};
+
+export const removeTask = async (req: Request, res: Response) => {
+  try {
+    const { task_id } = req.params;
+    if (!task_id) {
+      res.status(401).send("Error. invalid task request");
+      return;
+    }
+    await prisma.studysession_tasks.delete({
+      where: {
+        task_id: Number(task_id),
+      },
+    });
+    res.status(200).send("Task Deleted Succesfully.");
+  } catch (error) {
+    console.error(error);
+    res.status(500).send("Database error.");
   }
 };
 
@@ -97,7 +157,6 @@ const getActiveStudySession = async (req: Request, res: Response) => {
 };
 
 const getSoloStudySession = async (user_id: string) => {
-
   const soloSession = await prisma.solo_studysessions.findFirst({
     where: {
       user_id: Number(user_id), // Filter by user_id
@@ -135,48 +194,47 @@ const getSoloStudySession = async (user_id: string) => {
 };
 
 const getGroupStudySessions = async (user_id: string) => {
-  
-    const groupSessions = await prisma.group_studysessions.findMany({
-      where: {
-        studygroups: {
-          user_studygroups: {
-            some: { user_id: Number(user_id)}, // Filter for study groups where the user is a member
-          },
+  const groupSessions = await prisma.group_studysessions.findMany({
+    where: {
+      studygroups: {
+        user_studygroups: {
+          some: { user_id: Number(user_id) }, // Filter for study groups where the user is a member
         },
-        end_time: { gt: new Date().toISOString() }, //make sure the session has not ended
-        start_time: {lt : new Date().toISOString() }, //make sure the session has started
       },
-      orderBy: {
-        start_time: 'desc', // Order by start_time in descending order
-      },
-      select: {
-        studygroups: {
-          select: {
-            group_name: true,
-            user_studygroups: {
-              select: {
-                user_id: true,
-                users: {
-                  select: {
-                    username: true,
-                    first_name: true,
-                    last_name: true,
-                  },
+      end_time: { gt: new Date().toISOString() }, //make sure the session has not ended
+      start_time: { lt: new Date().toISOString() }, //make sure the session has started
+    },
+    orderBy: {
+      start_time: "desc", // Order by start_time in descending order
+    },
+    select: {
+      studygroups: {
+        select: {
+          group_name: true,
+          user_studygroups: {
+            select: {
+              user_id: true,
+              users: {
+                select: {
+                  username: true,
+                  first_name: true,
+                  last_name: true,
                 },
-                user_role: true,
               },
+              user_role: true,
             },
           },
         },
-        session_name: true,
-        start_time: true,
-        end_time: true,
-        group_studysessions_id: true,
       },
-    });
-  
-   //format the data
-   const formattedGroupSessions = groupSessions.map((session) => ({
+      session_name: true,
+      start_time: true,
+      end_time: true,
+      group_studysessions_id: true,
+    },
+  });
+
+  //format the data
+  const formattedGroupSessions = groupSessions.map((session) => ({
     session_id: session.group_studysessions_id,
     group_studysession_id: session.group_studysessions_id,
     session_name: session.session_name,
@@ -189,70 +247,11 @@ const getGroupStudySessions = async (user_id: string) => {
       first_name: user.users.first_name,
       last_name: user.users.last_name,
       user_role: user.user_role,
-    }))
+    })),
   }));
 
   return formattedGroupSessions;
 };
-
-// const getMapStudySessionInfo = async (req: Request, res: Response) => {
-//   const { user_id } = req.params;
-//   try {
-//     // Get the user's active study session
-//     const { data: userSession, error: userSessionError } = await supabase
-//       .from('studysessions')
-//       .select('user_id, session_name, endtime')
-//       .eq('user_id', user_id)
-//       .eq('session_completed', false)
-//       .single();
-
-//     if (userSessionError) throw userSessionError;
-
-//     const { data: friendSessions, error: friendSessionsError } = await supabase
-//       .from('friends')
-//       .select('u.username, u.first_name, u.last_name, u.user_id, s.endtime, s.session_name, s.lat, s.lon')
-//       .join('users u', 'u.user_id', 'friends.friend_id')
-//       .join('studysessions s', 's.user_id', 'u.user_id')
-//       .or(`friends.user_id.eq.${user_id},friends.friend_id.eq.${user_id}`)
-//       .eq('s.session_completed', false)
-//       .neq('u.user_id', user_id);
-
-//     if (friendSessionsError) throw friendSessionsError;
-
-//     let user, friends;
-
-//     if (userSession) {
-//       user = {
-//         session_id: userSession.session_id,
-//         session_name: userSession.session_name,
-//         endtime: userSession.endtime,
-//         user_id: userSession.user_id,
-//         session_completed: userSession.session_completed,
-//         checklist_id: userSession.checklist_id,
-//       };
-//     }
-//     if (friendSessions.length > 0) {
-//       friends = friendSessions.map((friend) => ({
-//         username: friend.username,
-//         first_name: friend.first_name,
-//         last_name: friend.last_name,
-//         user_id: friend.user_id,
-//         session_id: friend.session_id,
-//         session_name: friend.session_name,
-//         endtime: friend.endtime,
-//         lat: friend.lat,
-//         lon: friend.lon,
-//       }));
-//     }
-//     res.json({
-//       user: user ?? "User not currently in session",
-//       friends: friends ?? "No friends currently in session",
-//     });
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).send("Database error");
-//   }
-// };
 
 const completeActiveStudySession = async (req: Request, res: Response) => {
   try {
@@ -266,7 +265,7 @@ const completeActiveStudySession = async (req: Request, res: Response) => {
           end_time: new Date().toISOString(),
         },
       });
-    } else if(session_type === "group") {
+    } else if (session_type === "group") {
       await prisma.group_studysessions.update({
         where: {
           group_studysessions_id: Number(session_id),
@@ -275,10 +274,9 @@ const completeActiveStudySession = async (req: Request, res: Response) => {
           end_time: new Date().toISOString(),
         },
       });
-    }
-    else{
-       res.status(400).send("Invalid session type"); 
-       return;
+    } else {
+      res.status(400).send("Invalid session type");
+      return;
     }
     res.status(200).send("Study session completed early.");
   } catch (error) {
@@ -287,16 +285,14 @@ const completeActiveStudySession = async (req: Request, res: Response) => {
   }
 };
 
-
 const getRecentSoloStudySessions = async (user_id: string) => {
-  
   const recentSessions = await prisma.solo_studysessions.findMany({
     where: {
-      user_id: Number(user_id), 
+      user_id: Number(user_id),
       end_time: { lt: new Date().toISOString() },
     },
     orderBy: {
-      start_time: 'desc',
+      start_time: "desc",
     },
     take: 8,
   });
@@ -305,20 +301,19 @@ const getRecentSoloStudySessions = async (user_id: string) => {
 };
 
 const getRecentGroupStudySessions = async (user_id: string) => {
-  
   const recentGroupSessions = await prisma.group_studysessions.findMany({
     where: {
       studygroups: {
         user_studygroups: {
-          some: { user_id: Number(user_id)}, 
+          some: { user_id: Number(user_id) },
         },
       },
-      end_time: { lt: new Date().toISOString() }, 
+      end_time: { lt: new Date().toISOString() },
     },
     orderBy: {
-      start_time: 'desc', 
+      start_time: "desc",
     },
-    take: 8, 
+    take: 8,
     select: {
       studygroups: {
         select: {
@@ -378,13 +373,13 @@ const getUpcomingStudySessionsByUser = async (req: Request, res: Response) => {
       where: {
         studygroups: {
           user_studygroups: {
-            some: { user_id: Number(user_id) }, 
+            some: { user_id: Number(user_id) },
           },
         },
-        start_time: { gt: new Date().toISOString() }, 
+        start_time: { gt: new Date().toISOString() },
       },
       orderBy: {
-        start_time: 'asc', 
+        start_time: "asc",
       },
       select: {
         studygroups: {
@@ -397,7 +392,7 @@ const getUpcomingStudySessionsByUser = async (req: Request, res: Response) => {
         end_time: true,
       },
     });
-   
+
     res.send(upcomingGroupSessions);
   } catch (error) {
     console.error(error);

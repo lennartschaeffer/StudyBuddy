@@ -9,6 +9,8 @@ import {
   getRecentStudySessions,
   createGroupStudySession,
   getUpcomingStudySessionsByUser,
+  addTask,
+  removeTask,
 } from "../controllers/StudySessionController";
 import { authMiddleware } from "../controllers/AuthController";
 
@@ -16,20 +18,41 @@ export const StudySessionRoutes = (io: Server) => {
   const router = express.Router();
 
   //POST
-  router.post("/", async(req: Request, res: Response) => await createStudySession(req, res, io));
-  router.post("/group", createGroupStudySession);
+  router.post(
+    "/",
+    async (req: Request, res: Response) =>
+      await createStudySession(req, res, io)
+  );
+  router.post("/group", authMiddleware, createGroupStudySession);
+  router.post("/addTask",authMiddleware, addTask);
 
-  router.put("/completeTask/:task_id",authMiddleware, completeTask);
+  router.put("/completeTask/:task_id", authMiddleware, completeTask);
   router.put(
-    "/completeActiveStudySession/:session_id/:session_type",authMiddleware,
+    "/completeActiveStudySession/:session_id/:session_type",
+    authMiddleware,
     completeActiveStudySession
   );
 
   //GET
-  router.get("/activeStudySession/:user_id",authMiddleware, getActiveStudySession);
-  router.get("/recentStudySessions/:user_id",authMiddleware, getRecentStudySessions);
+  router.get(
+    "/activeStudySession/:user_id",
+    authMiddleware,
+    getActiveStudySession
+  );
+  router.get(
+    "/recentStudySessions/:user_id",
+    authMiddleware,
+    getRecentStudySessions
+  );
   //router.get("/mapStudySessionInfo/:user_id", getMapStudySessionInfo);
-  router.get("/upcomingGroupSessions/:user_id",authMiddleware, getUpcomingStudySessionsByUser);
+  router.get(
+    "/upcomingGroupSessions/:user_id",
+    authMiddleware,
+    getUpcomingStudySessionsByUser
+  );
+
+  //DELETE
+  router.delete("/removeTask/:task_id", authMiddleware, removeTask);
 
   return router;
 };
